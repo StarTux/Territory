@@ -1,0 +1,12 @@
+main: com.cavetale.territory.TerritoryPlugin
+
+name: Territory
+version: 0.1
+description: Create territories in the mining world.
+api-version: 1.13
+
+author: StarTux
+website: https://github.com/StarTux/Territory
+
+depend: []
+softdepend: [Decorator]
