@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -70,7 +71,6 @@ public final class ZoneWorld {
 
     private void loadBiomesInternal() throws IOException {
         File file = new File(folder, "biomes.txt");
-        Map<BiomeGroup, Integer> ranking = new EnumMap<>(BiomeGroup.class);
         try (BufferedReader in = new BufferedReader(new FileReader(file))) {
             String line;
             while (null != (line = in.readLine())) {
@@ -82,28 +82,16 @@ public final class ZoneWorld {
                 if (x > bx) bx = x;
                 if (z < az) az = z;
                 if (z > bz) bz = z;
-                ranking.clear();
+                Set<BiomeGroup> biomes = EnumSet.noneOf(BiomeGroup.class);
+                BiomeGroup mainBiome = null;
                 for (int i = 2; i < toks.length; i += 1) {
                     String name = toks[i];
                     BiomeGroup biomeGroup = BiomeGroup.of(name);
                     if (biomeGroup == null) continue;
-                    ranking.compute(biomeGroup, (b, sc) -> sc == null ? 1 : sc + 1);
+                    if (mainBiome == null || biomeGroup == BiomeGroup.RIVER) mainBiome = biomeGroup;
                 }
-                int max = 0;
-                BiomeGroup biome;
-                if (ranking.containsKey(BiomeGroup.RIVER)) {
-                    biome = BiomeGroup.RIVER;
-                } else {
-                    biome = BiomeGroup.VOID;
-                    for (BiomeGroup biomeGroup : BiomeGroup.values()) {
-                        Integer score = ranking.get(biomeGroup);
-                        if (score == null) continue;
-                        if (score <= max) continue;
-                        max = score;
-                        biome = biomeGroup;
-                    }
-                }
-                chunks.add(new ZoneChunk(new Vec2i(x, z), biome));
+                if (mainBiome == null) mainBiome = BiomeGroup.VOID;
+                chunks.add(new ZoneChunk(new Vec2i(x, z), mainBiome));
             }
         }
         width = bx - ax + 1;
@@ -193,9 +181,12 @@ public final class ZoneWorld {
             if (dynamicColor) {
                 Vec2i center = zone.getCenter();
                 float east = (float) (center.x - ax) / (float) width;
-                // float bright = (float) (center.y - az) / (float) height;
+                float[] hsb = Color.RGBtoHSB(zone.biome.color.getRed(),
+                                             zone.biome.color.getGreen(),
+                                             zone.biome.color.getBlue(),
+                                             new float[3]);
                 float lvl = (float) zone.level / (float) maxLevel;
-                color = Color.getHSBColor(0f, 0f, 1f - lvl);
+                color = Color.getHSBColor(hsb[0], hsb[1], 1f - lvl);
             } else {
                 color = zone.biome.color;
             }
@@ -528,18 +519,35 @@ public final class ZoneWorld {
                 scaledZones.add(zone);
             }
         }
-        int level = 0;
+        int distance = 0;
         while (scaledZones.size() < zones.size()) {
-            level += 1;
-            maxLevel = level;
+            distance += 1;
+            maxLevel = distance / 2;
             for (Zone scaled : new ArrayList<>(scaledZones)) {
                 for (Zone newZone : scaled.neighbors) {
                     if (scaledZones.contains(newZone)) continue;
-                    newZone.level = level;
+                    newZone.level = maxLevel;
                     scaledZones.add(newZone);
                 }
             }
-            System.out.println("Level " + level + ": " + scaledZones.size());
+            // Pad surrounding (for now) empty biomes, which means
+            // oceans, and give them the current level.
+            for (Zone scaled : new ArrayList<>(scaledZones)) {
+                for (Zone newZone : scaled.neighbors) {
+                    if (scaledZones.contains(newZone)) continue;
+                    switch (newZone.biome) {
+                    case OCEAN:
+                    case WARM_OCEAN:
+                    case COLD_OCEAN:
+                    case RIVER: // Shouldn't exist but let's be sure
+                        break;
+                    default:
+                        continue;
+                    }
+                    newZone.level = maxLevel;
+                    scaledZones.add(newZone);
+                }
+            }
         }
     }
 
