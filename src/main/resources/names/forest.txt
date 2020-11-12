@@ -1,0 +1,764 @@
+# Brazil
+
+Açu
+Açungui
+Altamira
+Amaná
+Amapá
+Amazonas
+Anauá
+Araripe-Apodi
+Aripuanã
+Balata-Tufari
+Bom Futuro
+Brasília
+Caçador
+Canela
+Capão Bonito
+Carajás
+Caxiuanã
+Chapecó
+Contendas do Sincorá
+Crepori
+Cristópolis
+Goytacazes
+Humaitá
+Ibirama
+Ibura
+Ipanema
+Iquiri
+Irati
+Itacaiunas
+Itaituba I
+Itaituba II
+Jacundá
+Jamanxim
+Jamari
+Jatuarana
+Lorena
+Macauã
+Mapiá-Inauini
+Mário Xavier
+Mata Grande
+Mulata
+Negreiros
+Nísia Floresta
+Pacotuba
+Palmares
+Paraopeba
+Passa Quatro
+Passo Fundo
+Pau-Rosa
+Piraí do Sul
+Purus
+Restinga de Cabedelo
+Rio Preto
+Ritápolis
+Roraima
+Santa Rosa do Purus
+São Francisco
+São Francisco de Paula
+Saracá-Taquera
+Silvânia
+Sobral
+Tapajós
+Tapirapé-Aquiri
+Tefé
+Três Barras
+Trairão
+Urupadi
+
+# Canada
+
+Alberta Mountain
+Aspen parkland
+Muskwa-Slave
+Rockies
+Alberta-British Columbia
+Aspen parkland
+British Columbia
+Cascade Mountains leeward
+Elkington
+Fraser Plateau
+Basin complex
+Great Bear
+Malcolm Knapp Research
+Muskwa-Slave
+North Central Rockies
+Northern Pacific
+Pacific temperate
+Agassiz
+Belair
+Brightstone Sand Hill
+Cat Hills
+Cormorant
+Duck Mountain
+Moose Creek
+Northwest Angle
+Porcupine
+Provincial
+Sandilands
+Swan-Pelican
+Tallgrass Aspen Parkland
+Turtle Mountain
+Wampum
+Whiteshell
+Newfoundland Highland
+Ben Eoin Park
+Barker's Bush
+Carolinian
+Central Shield
+Crothers
+Haliburton
+Happy Valley
+Laurentian Mixed
+Long Point, Ontario
+Midwestern Shield
+Niagara Glen Nature Reserve
+Obabika Old-Growth
+Pinery
+Point Pelee
+Rock Glen Conservation Area
+Rock Point
+Rondeau
+Short Hills
+Southwest Elgin
+Wheatley
+Beach Grove Memorial
+Strathgartney
+Angell
+Bois Beckett
+Central Shield
+Great North
+Laurentian Mixed
+Canwood
+Corne
+Nisbet
+Northern
+Porcupine
+Torch River
+Yukon Interior dry
+Northern hardwood
+Northwoods
+
+# Denmark
+
+Silkeborgskovene
+Rold Skov
+Klosterheden
+Gribskov
+Almindingen
+Kompedal Plantage–Alhedens Skov
+Løvenholm
+Fjeld
+Ramten
+Vesterskov
+Thorsø
+Sønderskov
+Rye Nørreskov
+Skramsø
+Skærsø
+Lyngsbæk
+Slagelseskovene
+Tvorup
+Nystrup
+Vandet plantager
+
+# France
+
+Hardt
+Donon
+Haguenau
+Obernai
+Sélesta-Illwald
+Iraty
+Forêt des Landes
+Lège et Garonne
+Gros-Bois
+Marigny
+Messarges
+Forêt des Prieurés Maladier
+Tronçais
+Brocéliande
+Carnoët
+Coëtquen
+Cranou
+Fougères
+Fréau
+Huelgoat
+Hunaudaye
+Guerche
+Liffré
+Mesnil
+Paimpont
+Rennes in Liffré
+Saint-Aubin-du-Cormier
+Lanouée
+Arcy
+Bertrange
+Borne
+Champornot
+Châtillon
+Forêt Chenue
+Forêt domaniale de Cîteaux
+Forêt des Courgeonneries
+Forêt des Dames
+Donzy
+Flavigny
+Fontenay
+Forêt des Minimes
+Saulieu
+Vauluisant
+Lancy
+Amboise
+Bercé
+Blois
+Boulogne
+Bruadan
+Parc de Chambord
+Chaumont
+Cheverny
+Chinon
+Choussy
+Gâtine
+Ivoy
+Loches
+Moléans
+Montargis
+Montrichard
+Orléans
+Preuilly
+Russy
+Saint-Palais
+Vierzon
+Villandry
+Vouzeron
+Bois des Fays
+Bois des Montclaims
+Arc-en-Barrois
+Argonne
+Forêt des Ardennes
+Bassican
+Clairvaux
+Corgebin
+Der
+Forêt des Dhuits
+Étoile
+Garenne
+Montagne de Reims
+Mont-Dieu
+Orient
+Othe
+Retz
+Romilly
+Aumont
+Crogny
+Cussangy
+Bois du devois
+Bois de Chamois
+Bois du Hayet
+Temple
+Signy
+Val
+Aïtone
+Calenzana
+Chiavari
+Fango
+Lucio
+Filosorma
+Onca
+Ospédale
+Tartagine
+Tavignano
+Valdo-Niello
+Vizzavona
+Zonza
+Champlitte
+Chaux
+Faroz
+Forêt des Hauts-Bois
+Joux
+Bois de Boulogne
+Bois de la Tour du Lay
+Bois de Villiers
+Bois de la Bucaille
+Bois de Vincennes
+Alluets
+Armainvilliers
+Carnelle
+Fontainebleau
+Isle-Adam
+Jouy
+Marly
+Meudon
+Moisson
+Montmorency
+Notre-Dame
+Rambouillet
+Rouvray
+Saint-Germain-en-Laye
+Sénart
+Bois de Fontanilles
+Fontfroide
+Haut-Vallespir
+Mercoire
+Mont-Aigoual
+Forêt des Cars
+Lastours
+Châteauneuf
+Rochechouart
+Viellecour
+Darney
+Gerardmer
+Haye
+Verdun
+Aubrac
+Barousse
+Garrigue
+Grésigne
+Haut Comminges
+Loubatière
+Montaud
+Sidobre
+Bouconne
+Éperlecques
+Mormal
+Raismes-Saint-Amand-Wallers
+Forêt des Andaines
+Bellême
+Écouves
+Longny
+Perche
+Perseigne
+Réno-Valdieu
+Vidamme
+Forêt des Andelys
+Beaumont
+Breteuil
+Brotonne
+Conches
+Eawy
+Eu
+Évreux
+Louviers
+Lyons
+Montfort
+Roumare
+Rouvray
+Vernon
+Forêt Verte
+Pays de la Loire
+Bois des Vallons
+Bercé
+Bonnétable
+Boulogne
+Bois de Bourgon
+Boi d'Hermet
+Fontevraud
+Bois de Couziers
+Bois de Roiffé
+Flèche
+Gâvre
+Grande Charnie
+Groulaie
+Guînes
+Roche-Bernard
+Machecoul
+Mans
+Mayenne
+Merven-Vouvant
+Milly
+Multonne
+Nuaillé
+Vezins
+Pail
+Rihout-Clairmarais
+Saumur
+Compiègne
+Chantilly
+Crécy
+Ermenonville
+Chailly
+Halatte
+Hez
+Hirson
+Saint-Michel
+Laigne
+Nouvion
+Retz
+Saint-Gobain
+Coubre
+Saint-Trojan
+Saint-Sauvant
+Forêt des Dentelles de Montmirail
+Esterel
+Forêt des Maures
+Menton
+Mont-Ventoux
+Sainte-Baume
+Tanneron
+Arc
+Bonnevaux
+Chambaran
+Grande Chartreuse
+Saou
+Semnoz
+Vercors
+Bébour
+Bélouve
+Forêt des Bénares
+Bois Blanc
+Cratère
+Crête
+Étang-Salé
+Grand Coude
+Grand Matarum
+Forêt des Makes
+Mare à Joseph
+Forêt Mourouvin
+Piton Papangue
+Plaine des Lianes
+Rivière des Remparts
+Tapcal
+Tévelave
+Villeneuve
+
+# Iceland
+
+Akurgerði
+Arnaldsstaðaskógur
+Álfholtsskógur
+Ásabrekka
+Ásbyrgi
+Brynjudalsskógur
+Bæjarstaðaskógur
+Daníelslundur
+Einkunnir
+Elliðaárdalur
+Eyjólfsstaðaskógur
+Fossá
+Furulundurinn
+Gaddstaðaflatir
+Grundarreitur
+Guðmundarlundur
+Gunnfríðarstaðaskógur
+Hallormsstaðaskógur
+Hamrahlíð
+Haukadalsskógur
+Haukadalur
+Hálsaskógur
+Hánefsstaðir
+Heiðmörk
+Hellisskógur
+Hofsstaðaskógur
+Hrútey
+Höfðaskógur
+Jafnaskarðsskógur
+Jórvíkurskógur
+Kirkjubæjarklaustur
+Kirkjuhvammur
+Kjarnaskógur
+Kristnesskógur
+Laugalandsskógur
+Laugarvatnsskógur
+Lágafell
+Leyningshólar
+Mela og Skuggabjargaskógur
+Mógilsá
+Múlakot
+Norðurtunguskógur
+Rauðavatn
+Reykholtsskógur
+Reykjarhólsskógur
+Selskógur
+Sigríðarstaðaskógur
+Skarðsdalur
+Skógarhlíð
+Skógarreitur
+Snæfoksstaðir
+Sólbrekkuskógur
+Stálpastaðaskógur
+Svartiskógur
+Tröð
+Tumastaðir
+Tunguskógur
+Vaðlaskógur
+Vaglaskógur
+Vaglir
+Vatnshornsskógur
+Vinaskógur
+Vífilsstaðavatn
+Völvuskógur
+Þjórsárdalur
+Þórðarstaðaskógur
+Þórsmörk
+Öskjuhlíð
+
+# India
+
+Abujmarh
+Annekal
+Baikunthapur
+Bandipur
+Bhitarkanika
+Odisha
+Bondla
+Cotigao
+Gir
+Jakanari
+Jim Corbett
+Kanha
+Madhya Pradesh
+Keibul Lamjao
+Kukrail
+Mhadei
+Molai
+Nagarhole
+Nallamala Hills
+Namdapha
+Nanmangalam
+Netravali
+New Amarambalam
+Pichavaram Mangrove
+Salim Ali
+Saranda
+Shettihalli
+Sundarbans
+Tadoba Andhari
+Vandalur
+Wayanad
+
+# Ireland
+
+Ballypatrick
+Belvoir
+Breen Oakwood
+Carnfunnock
+Glenariff
+Lagan Valley
+Rea's Wood
+Slieveanorra
+Gosford
+Maghery
+Bellamont
+Dún na Rí
+Killykeen
+Ards
+Belvoir
+Castlewellan
+Lagan Valley
+Rostrevor
+Tollymore
+Crom Estate
+Ely Lodge
+Florence Court
+Lough Navar
+Marble Arch
+Roe Valley
+Dartrey
+Dún na Rí
+Rossmore
+Drum Manor
+Gortin Glen
+Cahermurphy
+Dromore
+Ballyannan
+Marlogue
+Gearagh
+Glengarriff
+Killarney
+Glenbeigh
+Curragh Chase
+Ballyruane
+Oak Park
+Rathwood
+Barnaslingan
+Carrickgollogan
+Cruagh
+Tibradden
+Donadea
+Mullaghmeen
+Littlewood
+Drewstown
+Balrath
+Camcor
+Ardan
+Camolin
+Avondale
+Crone
+Djouce
+Ballyganon
+Shelton
+Barna
+Cong
+Derreen
+Merlin
+Coole Park
+Garryland
+Glenfarne Demesne
+Milltown
+St. Johns
+Lough Key
+Cairns Hill
+Carrownaskeagh
+Gortarowey
+Hazelwood
+Slish
+Union
+
+# South Africa
+
+Amazon Rainforest
+Blue Lily's Bush
+Dlinza
+Diepwalle
+Entabeni
+Entumeni
+Gilboa
+Hanglip
+Hankey
+Hawaan
+Hlabeni
+Hlatikhulu
+Hogsback
+Inyarha
+Isidenge
+Karkloof
+Katberg
+Knysna-Amatole montane
+Kologha
+Koomans Bush
+Kruisrivier
+Kubusi Indigenous
+Longmore
+Lottering
+Ncandu
+Newlands
+Nkandla
+Ngome
+Ongoye
+Orange Kloof
+Plaatbos
+Qudeni
+Robbe Hoek
+Sileza
+Soada
+Storms River
+Tuduma
+Umgano
+Welbedacht
+Weza
+Witelsbos
+
+# United Kingdom
+
+Thetford
+Horsford
+Rendlesham
+Mercia
+Black Country Urban
+Morfe
+Mortimer
+Cannock Chase
+Kinver
+Arden
+Wyre
+National
+Darwin
+Greenwood
+Sherwood
+Charnwood
+Leighfield
+Rockingham
+Salcey
+Kielder
+Hamsterley
+Delamere
+Mersey
+Macclesfield
+Grizedale
+Whinfell
+Whinlatter
+Ennerdale
+Blengdale
+Dodd
+Gisburn
+Epping
+Hainault
+Marston Vale
+Burnham Beeches
+Whiteleaf Hill
+Alice Holt
+Heartwood
+Brighstone
+Parkhurst
+Bedgebury
+Wychwood
+Chiddingfold
+Swinley
+Winterfold
+Ashdown
+Dallington
+Friston
+St Leonard's
+Worth
+Selwood
+Royal
+Avon
+Savernake
+Ashclyst
+Bellever
+Decoy
+Fernworthy
+Haldon
+Wareham
+Dalby
+Wykeham
+Backmuir
+Argyll
+Ae
+Carsphairn
+Corriedoo
+Dalbeattie
+Dundeugh
+Fleet
+Laurieston
+Mabie
+Penninghame
+Eskrigg
+Abernethy
+Glenmore
+Rothiemurchus
+Tentsmuir
+Craik
+Ettrick
+Wauchope
+Arecleoch
+Carrick
+Changue
+Tairlaw
+Rowardennan
+Strathyre
+Brechfa
+Penglais
+Gwydir
+Clocaenog
+Llandegla
+Coed-y-Brenin
+Wentwood
+Afan
+Clun
+Hafren
+Newborough
+Ballypatrick
+Belvoir
+Castlewellan
+Drum Manor
+Ely Lodge
+Florence Court
+Glenariff
+Gortin Glen
+Gosford
+Lough Navar
+Rostrevor
+Tollymore
