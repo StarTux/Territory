@@ -7,16 +7,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
+/**
+ * Zone abstraction for the Generator.
+ */
+@RequiredArgsConstructor @Getter
 public final class Zone {
     final BiomeGroup biome;
     final Set<Vec2i> chunks = new HashSet<>();
+    Map<Vec2i, BoundingBox> customStructures;
     private Vec2i center;
     boolean essential = false; // deprecated?
+    boolean structuresDone = false;
     int level;
     List<Zone> neighbors;
+    String name;
+
+    public Territory getTerritory() {
+        Territory t = new Territory(name, biome.key, getCenter(), level);
+        t.chunks.addAll(chunks);
+        t.customStructures.addAll(customStructures.values());
+        return t;
+    }
 
     public boolean isBorder(Vec2i vec) {
         return chunks.contains(vec)

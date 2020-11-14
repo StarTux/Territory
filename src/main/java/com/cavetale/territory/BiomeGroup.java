@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public enum BiomeGroup {
     VOID(Color.BLACK),
@@ -31,13 +33,20 @@ public enum BiomeGroup {
     FROZEN(new Color(0.5f, 0.5f, 1f));
 
     public static final Map<String, BiomeGroup> NAMES = new HashMap<>();
+    public static final Map<String, BiomeGroup> KEYS = new HashMap<>();
     public final Set<String> names = new HashSet<>();
     public final Color color;
     public final boolean essential;
+    public final String key;
+    public final String humanName;
 
     BiomeGroup(final Color color, final boolean essential) {
+        this.key = name().toLowerCase();
         this.color = color;
         this.essential = essential;
+        this.humanName = Stream.of(name().split("_"))
+            .map(s -> s.substring(0, 1) + s.substring(1).toLowerCase())
+            .collect(Collectors.joining(" "));
     }
 
     BiomeGroup(final Color color) {
@@ -48,11 +57,16 @@ public enum BiomeGroup {
         for (BiomeGroup biomeGroup : BiomeGroup.values()) {
             NAMES.put(biomeGroup.name(), biomeGroup);
             biomeGroup.names.add(biomeGroup.name());
+            KEYS.put(biomeGroup.key, biomeGroup);
         }
     }
 
     public static BiomeGroup of(String name) {
         return NAMES.computeIfAbsent(name, BiomeGroup::forName);
+    }
+
+    public static BiomeGroup ofKey(String name) {
+        return KEYS.get(name);
     }
 
     private static BiomeGroup forName(String biome) {
@@ -109,7 +123,7 @@ public enum BiomeGroup {
 
     public static void debug(PrintStream out) {
         for (BiomeGroup biomeGroup : BiomeGroup.values()) {
-            System.out.println(biomeGroup + " " + biomeGroup.names);
+            out.println(biomeGroup + " " + biomeGroup.names);
         }
     }
 }

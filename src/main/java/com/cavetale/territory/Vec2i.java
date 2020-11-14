@@ -49,6 +49,10 @@ public final class Vec2i {
         return Math.abs(other.x - x) + Math.abs(other.y - y);
     }
 
+    public int maxDistance(Vec2i other) {
+        return Math.max(Math.abs(other.x - x), Math.abs(other.y - y));
+    }
+
     public int maxAbsCoord() {
         return Math.max(Math.abs(x), Math.abs(y));
     }
@@ -115,5 +119,10 @@ public final class Vec2i {
             if (result == null || vec.y < result.y) result = vec;
         }
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return x + "," + y;
     }
 }

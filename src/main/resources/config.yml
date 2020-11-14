@@ -1,2 +1,6 @@
-Generator: false
-Manager: false
+Generator:
+  Enabled: false
+Manager:
+  Enabled: false
+  Worlds:
+  - world

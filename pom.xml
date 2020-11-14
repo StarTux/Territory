@@ -86,7 +86,7 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- Paper API -->
+    <!-- Decorator -->
     <dependency>
       <groupId>com.winthier.decorator</groupId>
       <artifactId>decorator</artifactId>

@@ -2,6 +2,8 @@ package com.cavetale.territory;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +53,10 @@ public final class Markov {
             .map(String::trim)
             .filter(it -> !it.isEmpty() && !it.startsWith("#"))
             .forEach(this::scan);
+    }
+
+    public void scan(InputStream input) {
+        scan(new BufferedReader(new InputStreamReader(input)));
     }
 
     public String generate(Random random) {

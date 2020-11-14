@@ -1,26 +1,24 @@
 package com.cavetale.territory;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Function;
 import javax.imageio.ImageIO;
 
 /**
@@ -45,17 +43,18 @@ public final class ZoneWorld {
     int bz = 0;
     int width;
     int height;
-    List<ZoneChunk> chunks = new ArrayList<>();
-    List<BoundingBox> structures = new ArrayList<>();
-    Gson gson = new Gson();
+    List<ZoneChunk> chunks;
+    List<BoundingBox> structures;
     List<Zone> zones;
     Map<Vec2i, ZoneChunk> findZonesPool;
     Map<Vec2i, Zone> zoneMap;
     Map<BiomeGroup, Vec2i> essentialBiomes;
     BufferedImage img;
     Graphics gfx;
-    boolean allZonesDone;
+    int generatorState;
     int maxLevel;
+    List<Vec2i> todoChunks;
+    Random random;
 
     public ZoneWorld(final File folder) {
         this.folder = folder;
@@ -63,69 +62,25 @@ public final class ZoneWorld {
 
     public void loadBiomes() {
         try {
-            loadBiomesInternal();
+            chunks = ZoneChunk.fromBiomesFile(new File(folder, "biomes.txt"));
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalStateException(e);
         }
-    }
-
-    private void loadBiomesInternal() throws IOException {
-        File file = new File(folder, "biomes.txt");
-        try (BufferedReader in = new BufferedReader(new FileReader(file))) {
-            String line;
-            while (null != (line = in.readLine())) {
-                String[] toks = line.split(",");
-                if (toks.length < 3) throw new IllegalStateException("toks.length=" + toks.length);
-                int x = Integer.parseInt(toks[0]);
-                int z = Integer.parseInt(toks[1]);
-                if (x < ax) ax = x;
-                if (x > bx) bx = x;
-                if (z < az) az = z;
-                if (z > bz) bz = z;
-                Set<BiomeGroup> biomes = EnumSet.noneOf(BiomeGroup.class);
-                BiomeGroup mainBiome = null;
-                for (int i = 2; i < toks.length; i += 1) {
-                    String name = toks[i];
-                    BiomeGroup biomeGroup = BiomeGroup.of(name);
-                    if (biomeGroup == null) continue;
-                    if (mainBiome == null || biomeGroup == BiomeGroup.RIVER) mainBiome = biomeGroup;
-                }
-                if (mainBiome == null) mainBiome = BiomeGroup.VOID;
-                chunks.add(new ZoneChunk(new Vec2i(x, z), mainBiome));
-            }
-        }
-        width = bx - ax + 1;
-        height = bz - az + 1;
     }
 
     public void loadStructures() {
         try {
-            loadStructuresInternal();
+            structures = BoundingBox.fromStructuresFile(new File(folder, "structures.txt"));
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalStateException(e);
         }
-    }
-
-    public void loadStructuresInternal() throws IOException {
-        File file = new File(folder, "structures.txt");
-        TypeToken<List<BoundingBox>> token = new TypeToken<List<BoundingBox>>() { };
-        try (BufferedReader in = new BufferedReader(new FileReader(file))) {
-            String line;
-            while (null != (line = in.readLine())) {
-                String[] toks = line.split(",", 3);
-                if (toks.length != 3) throw new IllegalStateException("toks.length=" + toks.length);
-                int x = Integer.parseInt(toks[0]);
-                int z = Integer.parseInt(toks[1]);
-                List<BoundingBox> list;
-                try {
-                    list = gson.fromJson(toks[2], token.getType());
-                } catch (Exception e) {
-                    System.err.println(e.getMessage() + ": " + toks[2]);
-                    e.printStackTrace();
-                    continue;
-                }
-                structures.addAll(list);
-            }
+        for (ZoneChunk chunk : chunks) {
+            if (chunk.vec.x < ax) ax = chunk.vec.x;
+            if (chunk.vec.x > bx) bx = chunk.vec.x;
+            if (chunk.vec.y < az) az = chunk.vec.y;
+            if (chunk.vec.y > bz) bz = chunk.vec.y;
+            width = bx - ax + 1;
+            height = bz - az + 1;
         }
     }
 
@@ -175,6 +130,19 @@ public final class ZoneWorld {
         }
     }
 
+    public void drawCustomStructures() {
+        for (Zone zone : zones) {
+            if (zone.customStructures == null) continue;
+            for (BoundingBox bb : zone.customStructures.values()) {
+                int x1 = bb.min.x >> 4;
+                int x2 = bb.max.x >> 4;
+                int y1 = bb.min.z >> 4;
+                int y2 = bb.max.z >> 4;
+                rect(zone.biome.color.darker(), x1, y1, x2 - x1 + 1, y2 - y1 + 1);
+            }
+        }
+    }
+
     public void drawZones(boolean fill, boolean dynamicColor) {
         for (Zone zone : zones) {
             Color color;
@@ -205,7 +173,7 @@ public final class ZoneWorld {
     public void drawZoneLabels() {
         for (Zone zone : zones) {
             Vec2i center = zone.getCenter();
-            print(Color.WHITE, zone.biome.name(), center.x, center.y);
+            print(Color.WHITE, "" + zone.level, center.x, center.y);
         }
     }
 
@@ -297,10 +265,7 @@ public final class ZoneWorld {
     }
 
     public boolean findZonesStep() {
-        if (findZonesPool.isEmpty()) {
-            allZonesDone = true;
-            return false;
-        }
+        if (findZonesPool.isEmpty()) return false;
         Set<Vec2i> todo = new HashSet<>();
         ZoneChunk pivot = findZonesPool.values().iterator().next();
         findZonesPool.remove(pivot.vec);
@@ -422,7 +387,7 @@ public final class ZoneWorld {
         List<Vec2i> todo = new ArrayList<>();
         todo.add(start);
         int finalSize = Math.min(preferredSize, zone.size() / 2);
-        Random random = new Random(start.hashCode());
+        random = new Random(start.hashCode());
         while (!todo.isEmpty() && newZone.size() < finalSize) {
             Vec2i chunk = todo.remove(random.nextInt(todo.size()));
             if (!zone.containsChunk(chunk)) continue;
@@ -519,6 +484,7 @@ public final class ZoneWorld {
                 scaledZones.add(zone);
             }
         }
+        if (scaledZones.isEmpty()) throw new IllegalStateException("Not starter zones!");
         int distance = 0;
         while (scaledZones.size() < zones.size()) {
             distance += 1;
@@ -540,18 +506,77 @@ public final class ZoneWorld {
                     case WARM_OCEAN:
                     case COLD_OCEAN:
                     case RIVER: // Shouldn't exist but let's be sure
+                        newZone.level = maxLevel;
+                        scaledZones.add(newZone);
                         break;
                     default:
-                        continue;
+                        break;
                     }
-                    newZone.level = maxLevel;
-                    scaledZones.add(newZone);
                 }
             }
         }
     }
 
-    public void saveZones() {
+    public int adventurize(Markov markov, Function<Vec2i, BoundingBox> structureGenerator) {
+        int steps = 0;
+        while (adventurizeStep(markov, structureGenerator)) steps += 1;
+        return steps;
+    }
+
+    public boolean adventurizeStep(Markov markov, Function<Vec2i, BoundingBox> structureGenerator) {
+        Zone zone = null;
+        for (Zone z : zones) {
+            if (z.structuresDone) continue;
+            zone = z;
+            break;
+        }
+        if (zone == null) {
+            return false;
+        }
+        if (zone.customStructures == null) {
+            // initialize new zone
+            zone.customStructures = new HashMap<>();
+            zone.name = markov.generate();
+            random = new Random(zone.getCenter().hashCode());
+            todoChunks = new ArrayList<>(zone.chunks);
+        }
+        switch (zone.biome) {
+        case OCEAN:
+        case WARM_OCEAN:
+        case COLD_OCEAN:
+        case RIVER: // Shouldn't exist but let's be sure
+            zone.structuresDone = true;
+            saveZone(zone);
+            return true;
+        default:
+            break;
+        }
+        if (todoChunks.isEmpty()) {
+            zone.structuresDone = true;
+            saveZone(zone);
+            return true;
+        }
+        Vec2i structureChunk = todoChunks.remove(random.nextInt(todoChunks.size()));
+        BoundingBox bb = structureGenerator.apply(structureChunk);
+        if (bb != null) {
+            zone.customStructures.put(structureChunk, bb);
+            todoChunks.removeIf(c -> c.maxDistance(structureChunk) <= 4);
+        }
+        return true;
+    }
+
+    public void saveZone(Zone zone) {
+        Gson gson = new Gson();
+        File folder2 = new File(folder, "cavetale.zones");
+        folder2.mkdirs();
+        Territory t = zone.getTerritory();
+        File file = new File(folder2, t.getFileName());
+        try (FileWriter fw = new FileWriter(file)) {
+            gson.toJson(t, fw);
+        } catch (IOException ioe) {
+            System.err.println("Saving " + file);
+            ioe.printStackTrace();
+        }
     }
 
     public void debug(PrintStream out) {
@@ -560,7 +585,7 @@ public final class ZoneWorld {
             count[zone.biome.ordinal()] += zone.size();
         }
         for (BiomeGroup biomeGroup : BiomeGroup.values()) {
-            System.out.println(count[biomeGroup.ordinal()] + " " + biomeGroup + " " + biomeGroup.names);
+            out.println(count[biomeGroup.ordinal()] + " " + biomeGroup + " " + biomeGroup.names);
         }
     }
 }
