@@ -95,6 +95,15 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- Core -->
+    <dependency>
+      <groupId>com.cavetale.core</groupId>
+      <artifactId>core</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
     <!-- Lombok -->
     <dependency>
       <groupId>org.projectlombok</groupId>

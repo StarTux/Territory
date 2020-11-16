@@ -3,46 +3,26 @@ package com.cavetale.territory;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import lombok.Value;
 
 @Value
 public final class Vec2i {
-    private static final long RIGHT = 0x00000000FFFFFFFFL;
-    private static final Map<Long, Vec2i> CACHE = new TreeMap<>();
     public final int x;
     public final int y;
 
-    public Vec2i relative(int dx, int dy) {
+    public Vec2i add(int dx, int dy) {
         return new Vec2i(x + dx, y + dy);
     }
 
+    public Vec2i add(Vec2i o) {
+        return new Vec2i(x + o.x, y + o.y);
+    }
+
     public List<Vec2i> getNeighbors() {
-        return Arrays.asList(relative(1, 0),
-                             relative(0, 1),
-                             relative(-1, 0),
-                             relative(0, -1));
-    }
-
-    static long toLong(final int x, final int y) {
-        return (((long) y) << 32) | ((long) x & RIGHT);
-    }
-
-    public long toLong() {
-        return toLong(x, y);
-    }
-
-    public static int xFromLong(final long k) {
-        return (int) (k & RIGHT);
-    }
-
-    public static int yFromLong(final long k) {
-        return (int) ((k >> 32) & RIGHT);
-    }
-
-    public static Vec2i fromLong(final long k) {
-        return new Vec2i(xFromLong(k), yFromLong(k));
+        return Arrays.asList(add(1, 0),
+                             add(0, 1),
+                             add(-1, 0),
+                             add(0, -1));
     }
 
     public int distanceSum(Vec2i other) {

@@ -34,10 +34,10 @@ public final class Zone {
 
     public boolean isBorder(Vec2i vec) {
         return chunks.contains(vec)
-            && (!chunks.contains(vec.relative(0, 1))
-                || !chunks.contains(vec.relative(1, 0))
-                || !chunks.contains(vec.relative(0, -1))
-                || !chunks.contains(vec.relative(-1, 0)));
+            && (!chunks.contains(vec.add(0, 1))
+                || !chunks.contains(vec.add(1, 0))
+                || !chunks.contains(vec.add(0, -1))
+                || !chunks.contains(vec.add(-1, 0)));
     }
 
     public void putIn(Map<Vec2i, Zone> map) {

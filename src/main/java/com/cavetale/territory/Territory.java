@@ -17,4 +17,11 @@ public final class Territory {
     public String getFileName() {
         return "zone." + center.x + "." + center.y + ".json";
     }
+
+    public BoundingBox customStructureAt(int x, int y, int z) {
+        for (BoundingBox bb : customStructures) {
+            if (bb.contains(x, y, z)) return bb;
+        }
+        return null;
+    }
 }

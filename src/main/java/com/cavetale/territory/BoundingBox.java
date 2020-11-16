@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,13 @@ public final class BoundingBox {
         return min.x <= other.max.x && max.x >= other.min.x
             && min.z <= other.max.z && max.z >= other.min.z
             && min.y <= other.max.y && max.y >= other.min.y;
+    }
+
+    public boolean overlapsAny(Collection<BoundingBox> others) {
+        for (BoundingBox other : others) {
+            if (overlaps(other)) return true;
+        }
+        return false;
     }
 
     public static List<BoundingBox> fromStructuresFile(File file) throws IOException {
@@ -79,5 +87,13 @@ public final class BoundingBox {
     public void addPosition(Position position) {
         if (positions == null) positions = new ArrayList<>();
         positions.add(position);
+    }
+
+    public Position getPositionAt(int x, int y, int z) {
+        if (positions == null) return null;
+        for (Position position : positions) {
+            if (position.isAt(x, y, z)) return position;
+        }
+        return null;
     }
 }

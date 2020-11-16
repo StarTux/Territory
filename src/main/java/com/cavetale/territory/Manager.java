@@ -4,6 +4,7 @@ import com.destroystokyo.paper.Title;
 import com.google.gson.Gson;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -56,6 +57,11 @@ public final class Manager implements Listener {
                 }
                 territory.tworld = tworld;
                 tworld.addTerritory(territory);
+            }
+            try {
+                tworld.structures.addAll(BoundingBox.fromStructuresFile(new File(world.getWorldFolder(), "structures.txt")));
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
             }
             plugin.getLogger().info(tworld.worldName + ": " + tworld.territoryList.size() + " territories");
         }

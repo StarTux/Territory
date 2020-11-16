@@ -12,4 +12,12 @@ public final class Vec3i {
     public String toString() {
         return x + "," + y + "," + z;
     }
+
+    public Vec3i add(int dx, int dy, int dz) {
+        return new Vec3i(x + dx, y + dy, z + dz);
+    }
+
+    public Vec3i add(Vec3i o) {
+        return new Vec3i(x + o.x, y + o.y, z + o.z);
+    }
 }

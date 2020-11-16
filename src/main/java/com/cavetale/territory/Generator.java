@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Random;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
+import org.bukkit.HeightMap;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -29,15 +31,53 @@ public final class Generator implements Listener {
     private final TerritoryPlugin plugin;
     private Map<String, ZoneWorld> worlds = new HashMap<>();
     private Markov markov = new Markov(3);
-    List<Vec2i> inChunkCoords;
+    final List<Vec2i> inChunkCoords = new ArrayList<>(256); // [0,15]
+    final List<Vec2i> relChunkCoords = new ArrayList<>(256); // [-8,7]
+    public static final EnumSet<Material> GROUND_FLOOR_MATS = EnumSet.noneOf(Material.class);
+    public static final EnumSet<Material> REJECTED_MATS = EnumSet.noneOf(Material.class);
+
+    static {
+        for (Material mat : Material.values()) {
+            if (isSuitableGroundMat(mat)) GROUND_FLOOR_MATS.add(mat);
+        }
+    }
+
+    static boolean isSuitableGroundMat(Material mat) {
+        switch (mat) {
+        case GRASS_BLOCK:
+        case DIRT:
+        case COARSE_DIRT:
+        case PODZOL:
+        case SAND:
+        case COBBLESTONE:
+        case MOSSY_COBBLESTONE:
+        case GRAVEL:
+        case SANDSTONE:
+        case STONE:
+        case GRANITE:
+        case ANDESITE:
+        case DIORITE:
+        case ICE:
+        case BLUE_ICE:
+        case SNOW_BLOCK:
+            return true;
+        default: break;
+        }
+        String name = mat.name();
+        if (name.endsWith("_SLAB")) return false;
+        if (name.endsWith("_STAIRS")) return false;
+        if (name.endsWith("_TERRACOTTA")) return true;
+        if (name.contains("_SANDSTONE")) return true;
+        return false;
+    }
 
     public Generator enable() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
         markov.scan(plugin.getResource("names/forest.txt"));
-        inChunkCoords = new ArrayList<>();
         for (int y = 0; y < 16; y += 1) {
             for (int x = 0; x < 16; x += 1) {
                 inChunkCoords.add(new Vec2i(x, y));
+                relChunkCoords.add(new Vec2i(x - 8, y - 8));
             }
         }
         return this;
@@ -122,37 +162,57 @@ public final class Generator implements Listener {
         return true;
     }
 
-    BoundingBox generateStructure(World world, ZoneWorld zoneWorld, Vec2i chunk) {
-        int x = chunk.x << 4;
-        int z = chunk.y << 4;
-        int y = world.getHighestBlockYAt(x + 8, z + 8);
-        BoundingBox result = new BoundingBox("bandit_camp",
-                                             new Vec3i(x, y - 4, z),
-                                             new Vec3i(x + 15, y + 4, z + 15));
-        for (BoundingBox bb : zoneWorld.structures) {
-            if (bb.overlaps(result)) {
-                return null;
-            }
+    boolean isSuitableGroundFloor(Block block) {
+        Material mat = block.getType();
+        if (GROUND_FLOOR_MATS.contains(mat)) return true;
+        if (!REJECTED_MATS.contains(mat)) {
+            REJECTED_MATS.add(mat);
+            plugin.getLogger().info("Rejected ground floor mat: " + mat);
         }
+        return false;
+    }
+
+    BoundingBox generateStructure(World world, ZoneWorld zoneWorld, Vec2i chunk) {
         // Prepare random coords
         Random random = new Random(chunk.hashCode());
         Collections.shuffle(inChunkCoords, random);
+        Collections.shuffle(relChunkCoords, random);
         Iterator<Vec2i> inChunkIter = inChunkCoords.iterator();
-        // Fetch block
-        Block block = world.getBlockAt(x + 8, y, z + 8); // Loading sync!
-        if (block.isEmpty() || block.isLiquid() || !block.getType().isSolid()) return null;
+        Iterator<Vec2i> relChunkIter = relChunkCoords.iterator();
+        // Find center
+        Vec2i baseVec = new Vec2i(chunk.x << 4, chunk.y << 4); // base of the chunk
+        Block centerBlock = null; // loop will set
+        Vec2i centerVec = null; // loop will set
+        BoundingBox result = null; // loop will set
+        while (inChunkIter.hasNext()) {
+            Vec2i inChunkVec = inChunkIter.next();
+            Vec2i vec = baseVec.add(inChunkVec);
+            Block block = world.getHighestBlockAt(vec.x, vec.y, HeightMap.MOTION_BLOCKING_NO_LEAVES);
+            Vec3i vec3 = new Vec3i(block.getX(), block.getY(), block.getZ());
+            BoundingBox bb = new BoundingBox("bandit_camp", vec3.add(-8, -8, -8), vec3.add(7, 7, 7));
+            if (bb.overlapsAny(zoneWorld.structures)) return null;
+            if (!isSuitableGroundFloor(block)) continue;
+            // Success
+            centerVec = vec;
+            centerBlock = block;
+            result = bb;
+        }
+        if (centerBlock == null) return null; // inChunkIter ran out
         // Chest
-        final Block chestBlock = block.getRelative(0, 1, 0);
+        final Block chestBlock = centerBlock.getRelative(0, 1, 0);
         result.addPosition(new Position("chest", new Vec3i(chestBlock.getX(), chestBlock.getY(), chestBlock.getZ())));
         // Some mobs
         int mobCount = 0;
-        while (mobCount < 8 && inChunkIter.hasNext()) {
-            Vec2i vec = inChunkIter.next();
-            block = world.getHighestBlockAt(x + vec.x, z + vec.y);
-            if (block.isEmpty() || block.isLiquid() || !block.getType().isSolid()) continue;
-            result.addPosition(new Position("enemy", new Vec3i(block.getX(), block.getY() + 1, block.getZ())));
+        while (mobCount < 8 && relChunkIter.hasNext()) {
+            Vec2i vec = centerVec.add(relChunkIter.next());
+            Block block = world.getHighestBlockAt(vec.x, vec.y, HeightMap.MOTION_BLOCKING_NO_LEAVES);
+            if (!isSuitableGroundFloor(block)) continue;
+            // Success
+            Position enemyPos = new Position("enemy", new Vec3i(block.getX(), block.getY() + 1, block.getZ()));
+            result.addPosition(enemyPos);
             mobCount += 1;
         }
+        if (mobCount == 0) return null;
         // Finalize
         org.bukkit.block.data.type.Chest data = (org.bukkit.block.data.type.Chest) Material.CHEST.createBlockData();
         List<BlockFace> faces = new ArrayList<>(data.getFaces());
