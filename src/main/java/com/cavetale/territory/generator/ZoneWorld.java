@@ -1,5 +1,11 @@
-package com.cavetale.territory;
+package com.cavetale.territory.generator;
 
+import com.cavetale.territory.BiomeGroup;
+import com.cavetale.territory.StructureType;
+import com.cavetale.territory.Territory;
+import com.cavetale.territory.bb.BoundingBox;
+import com.cavetale.territory.util.Markov;
+import com.cavetale.territory.util.Vec2i;
 import com.google.gson.Gson;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -20,6 +26,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
 import javax.imageio.ImageIO;
+import lombok.Getter;
 
 /**
  * Represents a Minecraft world in a folder. With the following:
@@ -35,6 +42,7 @@ import javax.imageio.ImageIO;
  *
  * It can also be used by a standalone app. Not Paper required.
  */
+@Getter
 public final class ZoneWorld {
     private final File folder;
     int ax = 0;
@@ -110,23 +118,23 @@ public final class ZoneWorld {
         Set<String> unhandled = new HashSet<>();
         Collections.sort(structures, (a, b) -> Integer.compare(a.min.y, b.min.y));
         for (BoundingBox bb : structures) {
-            Structure structure = Structure.forKey(bb.name);
-            if (structure == null) {
+            StructureType structureType = StructureType.forKey(bb.name);
+            if (structureType == null) {
                 unhandled.add(bb.name);
                 continue;
             }
-            if (structure == Structure.MINESHAFT) continue;
-            if (structure.color == 0) continue;
+            if (structureType == StructureType.MINESHAFT) continue;
+            if (structureType.color == 0) continue;
             if (bb.width() < 16 || bb.length() < 16) continue;
             int x1 = bb.min.x >> 4;
             int x2 = bb.max.x >> 4;
             int y1 = bb.min.z >> 4;
             int y2 = bb.max.z >> 4;
-            rect(new Color(structure.color), x1, y1, x2 - x1 + 1, y2 - y1 + 1);
-            print(new Color(structure.color), bb.name.substring(0, 3), x1, y1);
+            rect(new Color(structureType.color), x1, y1, x2 - x1 + 1, y2 - y1 + 1);
+            print(new Color(structureType.color), bb.name.substring(0, 3), x1, y1);
         }
         if (!unhandled.isEmpty()) {
-            System.err.println("Unhandled structures: " + unhandled);
+            System.err.println("Unhandled structure types: " + unhandled);
         }
     }
 

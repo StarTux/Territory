@@ -1,4 +1,4 @@
-package com.cavetale.territory;
+package com.cavetale.territory.util;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

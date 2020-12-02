@@ -1,5 +1,9 @@
-package com.cavetale.territory;
+package com.cavetale.territory.generator;
 
+import com.cavetale.territory.BiomeGroup;
+import com.cavetale.territory.Territory;
+import com.cavetale.territory.bb.BoundingBox;
+import com.cavetale.territory.util.Vec2i;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;

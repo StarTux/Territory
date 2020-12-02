@@ -1,5 +1,7 @@
 package com.cavetale.territory;
 
+import com.cavetale.territory.generator.Generator;
+import com.cavetale.territory.manager.Manager;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -7,7 +9,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class TerritoryPlugin extends JavaPlugin {
     private Generator generator;
     @Getter private Manager manager;
-    private TerritoryCommand territoryCommand;
 
     @Override
     public void onEnable() {
@@ -25,6 +26,5 @@ public final class TerritoryPlugin extends JavaPlugin {
         } else {
             getLogger().info("Manager disabled");
         }
-        territoryCommand = new TerritoryCommand(this).enable();
     }
 }

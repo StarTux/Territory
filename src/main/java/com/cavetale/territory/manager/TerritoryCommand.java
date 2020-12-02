@@ -1,7 +1,12 @@
-package com.cavetale.territory;
+package com.cavetale.territory.manager;
 
 import com.cavetale.core.command.CommandNode;
 import com.cavetale.core.command.CommandWarn;
+import com.cavetale.territory.Territory;
+import com.cavetale.territory.TerritoryPlugin;
+import com.cavetale.territory.bb.BoundingBox;
+import com.cavetale.territory.bb.Position;
+import com.cavetale.territory.util.Vec3i;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

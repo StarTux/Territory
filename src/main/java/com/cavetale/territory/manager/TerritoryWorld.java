@@ -1,5 +1,8 @@
-package com.cavetale.territory;
+package com.cavetale.territory.manager;
 
+import com.cavetale.territory.Territory;
+import com.cavetale.territory.bb.BoundingBox;
+import com.cavetale.territory.util.Vec2i;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +24,10 @@ public final class TerritoryWorld {
         for (Vec2i chunk : territory.chunks) {
             territoryMap.put(chunk, territory);
         }
+    }
+
+    public List<Territory> getTerritories() {
+        return territoryList;
     }
 
     public Territory getTerritoryAtChunk(int x, int y) {

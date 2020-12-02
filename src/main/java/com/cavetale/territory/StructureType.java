@@ -3,7 +3,7 @@ package com.cavetale.territory;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum Structure {
+public enum StructureType {
     MINESHAFT(0xffFFFFFF),
     VILLAGE(0xff88FF88),
     STRONGHOLD(0xffFF4444),
@@ -25,24 +25,24 @@ public enum Structure {
 
     public final String key;
     public final int color;
-    private static final Map<String, Structure> KEYS = new HashMap<>();
+    private static final Map<String, StructureType> KEYS = new HashMap<>();
 
-    Structure(final int color) {
+    StructureType(final int color) {
         this.key = name().toLowerCase();
         this.color = color;
     }
 
-    Structure() {
+    StructureType() {
         this(0);
     }
 
     static {
-        for (Structure structure : Structure.values()) {
+        for (StructureType structure : StructureType.values()) {
             KEYS.put(structure.key, structure);
         }
     }
 
-    public static Structure forKey(String key) {
+    public static StructureType forKey(String key) {
         return KEYS.get(key);
     }
 }

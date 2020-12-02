@@ -1,5 +1,7 @@
-package com.cavetale.territory;
+package com.cavetale.territory.bb;
 
+import com.cavetale.territory.util.Vec2i;
+import com.cavetale.territory.util.Vec3i;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.BufferedReader;
@@ -11,15 +13,18 @@ import java.util.Collection;
 import java.util.List;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.World;
 
 /**
- * A named bounding box read from the structures.txt file.
+ * A named bounding box with additional data in world coordinates.
+ * Read from the structures.txt file.
  */
 @Data @RequiredArgsConstructor
 public final class BoundingBox {
     public final String name;
     public final Vec3i min;
     public final Vec3i max;
+    public final Vec2i chunk;
     private List<BoundingBox> children;
     private List<Position> positions;
 
@@ -95,5 +100,21 @@ public final class BoundingBox {
             if (position.isAt(x, y, z)) return position;
         }
         return null;
+    }
+
+    /**
+     * Check if ALL containing chunks are loaded.
+     */
+    public boolean isLoaded(World world) {
+        final int ax = min.x >> 4;
+        final int ay = min.z >> 4;
+        final int bx = max.x >> 4;
+        final int by = max.z >> 4;
+        for (int y = ay; y <= by; y += 1) {
+            for (int x = ax; x <= bx; x += 1) {
+                if (!world.isChunkLoaded(x, y)) return false;
+            }
+        }
+        return true;
     }
 }

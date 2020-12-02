@@ -1,12 +1,21 @@
 package com.cavetale.territory;
 
+import com.cavetale.territory.bb.BoundingBox;
+import com.cavetale.territory.util.Vec2i;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 
+/**
+ * One contingent area within a world, comprised ideally of one
+ * BiomeGroup, sometimes several.
+ *
+ * Each territory is stored in a file named after the chunk that's
+ * considered its center. Example:
+ * zone.-1.17.json
+ */
 @Data
 public final class Territory {
-    transient TerritoryWorld tworld;
     public final String name;
     public final String biome;
     public final Vec2i center;

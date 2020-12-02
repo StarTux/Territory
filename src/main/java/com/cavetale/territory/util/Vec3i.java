@@ -1,4 +1,4 @@
-package com.cavetale.territory;
+package com.cavetale.territory.util;
 
 import lombok.Value;
 
@@ -19,5 +19,9 @@ public final class Vec3i {
 
     public Vec3i add(Vec3i o) {
         return new Vec3i(x + o.x, y + o.y, z + o.z);
+    }
+
+    public Vec2i getChunk() {
+        return new Vec2i(x >> 4, z >> 4);
     }
 }

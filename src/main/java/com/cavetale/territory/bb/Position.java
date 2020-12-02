@@ -1,7 +1,11 @@
-package com.cavetale.territory;
+package com.cavetale.territory.bb;
 
+import com.cavetale.territory.util.Vec3i;
 import lombok.Value;
 
+/**
+ * Stores a named position in world coordinates.
+ */
 @Value
 public final class Position {
     public final String name;

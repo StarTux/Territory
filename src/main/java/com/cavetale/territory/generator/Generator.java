@@ -1,5 +1,11 @@
-package com.cavetale.territory;
+package com.cavetale.territory.generator;
 
+import com.cavetale.territory.TerritoryPlugin;
+import com.cavetale.territory.bb.BoundingBox;
+import com.cavetale.territory.bb.Position;
+import com.cavetale.territory.util.Markov;
+import com.cavetale.territory.util.Vec2i;
+import com.cavetale.territory.util.Vec3i;
 import com.winthier.decorator.DecoratorPostWorldEvent;
 import java.io.File;
 import java.io.IOException;
@@ -189,7 +195,7 @@ public final class Generator implements Listener {
             Vec2i vec = baseVec.add(inChunkVec);
             Block block = world.getHighestBlockAt(vec.x, vec.y, HeightMap.MOTION_BLOCKING_NO_LEAVES);
             Vec3i vec3 = new Vec3i(block.getX(), block.getY(), block.getZ());
-            BoundingBox bb = new BoundingBox("bandit_camp", vec3.add(-8, -8, -8), vec3.add(7, 7, 7));
+            BoundingBox bb = new BoundingBox("bandit_camp", vec3.add(-8, -8, -8), vec3.add(7, 7, 7), chunk);
             if (bb.overlapsAny(zoneWorld.structures)) return null;
             if (!isSuitableGroundFloor(block)) continue;
             // Success

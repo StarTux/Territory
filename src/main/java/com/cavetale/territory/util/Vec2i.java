@@ -1,4 +1,4 @@
-package com.cavetale.territory;
+package com.cavetale.territory.util;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -19,10 +19,7 @@ public final class Vec2i {
     }
 
     public List<Vec2i> getNeighbors() {
-        return Arrays.asList(add(1, 0),
-                             add(0, 1),
-                             add(-1, 0),
-                             add(0, -1));
+        return Arrays.asList(add(1, 0), add(0, 1), add(-1, 0), add(0, -1));
     }
 
     public int distanceSum(Vec2i other) {

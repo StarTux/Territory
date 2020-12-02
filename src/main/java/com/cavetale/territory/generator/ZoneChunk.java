@@ -1,5 +1,7 @@
-package com.cavetale.territory;
+package com.cavetale.territory.generator;
 
+import com.cavetale.territory.BiomeGroup;
+import com.cavetale.territory.util.Vec2i;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -10,6 +12,16 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Entry read from the biomes.txt file.
+ *
+ * Line Format:
+ * x,y,z,BIOME1,BIOME2,...
+ * Example:
+ * 1,-2,17,TAIGA,RIVER,FROZEN_TAIGA
+ *
+ * The biomes.txt contains vanilla biome groups whereas this class
+ * will parse that info into one main BiomeGroup. River overrides all
+ * other biome groups for the purpose of splitting the map into
+ * territories along river boundaries.
  */
 @RequiredArgsConstructor
 public final class ZoneChunk {

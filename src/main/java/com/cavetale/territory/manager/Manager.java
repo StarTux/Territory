@@ -1,5 +1,9 @@
-package com.cavetale.territory;
+package com.cavetale.territory.manager;
 
+import com.cavetale.territory.BiomeGroup;
+import com.cavetale.territory.Territory;
+import com.cavetale.territory.TerritoryPlugin;
+import com.cavetale.territory.bb.BoundingBox;
 import com.destroystokyo.paper.Title;
 import com.google.gson.Gson;
 import java.io.File;
@@ -26,10 +30,12 @@ public final class Manager implements Listener {
     private final TerritoryPlugin plugin;
     private Map<String, TerritoryWorld> worlds = new HashMap<>();
     private Map<UUID, Session> sessions = new HashMap<>();
+    private TerritoryCommand territoryCommand;
 
     public Manager enable() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 1L, 1L);
+        territoryCommand = new TerritoryCommand(plugin).enable();
         Gson gson = new Gson();
         for (String worldName : plugin.getConfig().getStringList("Manager.Worlds")) {
             World world = Bukkit.getWorld(worldName);
@@ -55,7 +61,6 @@ public final class Manager implements Listener {
                     System.err.println("File yields null: " + file);
                     continue;
                 }
-                territory.tworld = tworld;
                 tworld.addTerritory(territory);
             }
             try {
@@ -109,6 +114,14 @@ public final class Manager implements Listener {
     }
 
     void tickWorld(World world, TerritoryWorld tworld) {
+        for (Territory territory : tworld.getTerritories()) {
+            for (BoundingBox struct : territory.getCustomStructures()) {
+                if (struct.isLoaded(world)) tickCustomStructure(world, tworld, territory, struct);
+            }
+        }
+    }
+
+    void tickCustomStructure(World world, TerritoryWorld tworld, Territory territory, BoundingBox structure) {
     }
 
     void tickPlayer(Player player) {
@@ -119,7 +132,7 @@ public final class Manager implements Listener {
             return;
         }
         Location location = player.getLocation();
-        Territory oldTerritory = session.getTerritory(this);
+        Territory oldTerritory = session.getTerritory();
         Territory territory = tworld.getTerritoryAtChunk(location.getBlockX() >> 4, location.getBlockZ() >> 4);
         if (!Objects.equals(oldTerritory, territory)) {
             session.setTerritory(territory);
