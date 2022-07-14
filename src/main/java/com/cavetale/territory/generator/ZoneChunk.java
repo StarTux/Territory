@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -27,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public final class ZoneChunk {
     public final Vec2i vec;
     public final BiomeGroup biome;
+    public final Map<BiomeGroup, Integer> biomeGroups;
 
     public static List<ZoneChunk> fromBiomesFile(File file) throws IOException {
         List<ZoneChunk> result = new ArrayList<>();
@@ -37,17 +40,35 @@ public final class ZoneChunk {
                 if (toks.length < 3) throw new IllegalStateException("toks.length=" + toks.length);
                 int x = Integer.parseInt(toks[0]);
                 int z = Integer.parseInt(toks[1]);
-                BiomeGroup mainBiome = null;
+                Map<BiomeGroup, Integer> biomeGroups = new EnumMap<>(BiomeGroup.class);
+                boolean isRiver = false;
+                BiomeGroup maxBiome = BiomeGroup.VOID;
+                int maxCount = 0;
                 for (int i = 2; i < toks.length; i += 1) {
-                    String name = toks[i];
+                    String[] fields = toks[i].split(":", 2);
+                    if (fields.length != 2) throw new IllegalStateException("field=" + toks[i]);
+                    String name = fields[0];
+                    String number = fields[1];
+                    int count;
+                    try {
+                        count = Integer.parseInt(number);
+                    } catch (NumberFormatException nfe) {
+                        throw new IllegalStateException("number=" + number);
+                    }
                     BiomeGroup biomeGroup = BiomeGroup.of(name);
                     if (biomeGroup == null) {
                         System.err.println("Unknown biome group: " + name);
+                        continue;
                     }
-                    if (mainBiome == null || biomeGroup == BiomeGroup.RIVER) mainBiome = biomeGroup;
+                    biomeGroups.put(biomeGroup, count);
+                    if (biomeGroup == BiomeGroup.RIVER) isRiver = true;
+                    if (count > maxCount) {
+                        maxBiome = biomeGroup;
+                        maxCount = count;
+                    }
                 }
-                if (mainBiome == null) mainBiome = BiomeGroup.VOID;
-                result.add(new ZoneChunk(new Vec2i(x, z), mainBiome));
+                BiomeGroup mainBiome = isRiver ? BiomeGroup.RIVER : maxBiome;
+                result.add(new ZoneChunk(new Vec2i(x, z), mainBiome, biomeGroups));
             }
         }
         return result;

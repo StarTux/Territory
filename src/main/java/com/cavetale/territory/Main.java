@@ -2,12 +2,9 @@ package com.cavetale.territory;
 
 import com.cavetale.territory.bb.BoundingBox;
 import com.cavetale.territory.generator.ZoneWorld;
-import com.cavetale.territory.util.Markov;
 import com.cavetale.territory.util.Vec2i;
 import com.cavetale.territory.util.Vec3i;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 
 public final class Main {
     ZoneWorld zoneWorld;
@@ -28,7 +25,6 @@ public final class Main {
         }
         zoneWorld = new ZoneWorld(folder);
         time("loadBiomes", zoneWorld::loadBiomes);
-        time("loadStructures", zoneWorld::loadStructures);
         time("findZones", () -> System.out.println("find steps=" + zoneWorld.findZones()));
         zoneWorld.mergeRivers();
         System.out.println("zones=" + zoneWorld.getZones().size());
@@ -38,17 +34,13 @@ public final class Main {
         time("mergeZones", () -> System.out.println("merge steps=" + zoneWorld.mergeZones(500)));
         System.out.println("zones=" + zoneWorld.getZones().size());
         zoneWorld.scaleZoneLevels();
-        Markov markov = new Markov(4);
-        markov.scan(new BufferedReader(new FileReader("src/main/resources/names/forest.txt")));
-        time("adventurize", () -> zoneWorld.adventurize(markov, this::generateStructure));
+        time("adventurize", () -> zoneWorld.adventurize(this::generateStructure));
         time("draw", () -> {
-                zoneWorld.makeImage(0xFF101010);
+                zoneWorld.makeImage(0);
                 zoneWorld.drawZones(true, true);
                 zoneWorld.drawZones(false, false);
-                //zoneWorld.drawStructures();
                 zoneWorld.drawEssentialBiomes();
                 zoneWorld.drawZoneLabels();
-                zoneWorld.drawCustomStructures();
             });
         zoneWorld.saveImage(new File("map.png"));
         zoneWorld.debug(System.out);
@@ -69,12 +61,12 @@ public final class Main {
                                              new Vec3i(x, y - 4, z),
                                              new Vec3i(x + 15, y + 4, z + 15),
                                              chunk);
-        for (BoundingBox bb : zoneWorld.getStructures()) {
-            if (bb.overlaps(result)) {
-                System.out.println("Overlaps: " + result + " / " + bb);
-                return null;
-            }
-        }
+        // for (BoundingBox bb : zoneWorld.getStructures()) {
+        //     if (bb.overlaps(result)) {
+        //         System.out.println("Overlaps: " + result + " / " + bb);
+        //         return null;
+        //     }
+        // }
         return result;
     }
 }

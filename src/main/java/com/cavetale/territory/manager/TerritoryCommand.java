@@ -51,11 +51,6 @@ public final class TerritoryCommand implements TabExecutor {
         if (tworld == null) throw new CommandWarn("Not a territory world: " + player.getWorld().getName());
         player.sendMessage("World " + tworld.worldName + ": " + tworld.territoryList.size() + " territories");
         Location location = player.getLocation();
-        // Structure
-        BoundingBox structure = tworld.getStructureAt(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-        if (structure != null) {
-            player.sendMessage("Structure " + structure.name + " " + structure.min + "-" + structure.max);
-        }
         // Territory
         Territory territory = tworld.getTerritoryAtChunk(location.getBlockX() >> 4, location.getBlockZ() >> 4);
         if (territory == null) throw new CommandWarn("There is no territory here!");

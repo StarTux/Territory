@@ -3,7 +3,6 @@ package com.cavetale.territory.generator;
 import com.cavetale.territory.TerritoryPlugin;
 import com.cavetale.territory.bb.BoundingBox;
 import com.cavetale.territory.bb.Position;
-import com.cavetale.territory.util.Markov;
 import com.cavetale.territory.util.Vec2i;
 import com.cavetale.territory.util.Vec3i;
 import com.winthier.decorator.DecoratorPostWorldEvent;
@@ -27,6 +26,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import static com.cavetale.structure.StructurePlugin.structureCache;
 
 /**
  * This generator is used by the plugin.
@@ -36,7 +36,6 @@ public final class Generator implements Listener {
     static final long NANOS_PER_TICK = 1000000000L / 20L;
     private final TerritoryPlugin plugin;
     private Map<String, ZoneWorld> worlds = new HashMap<>();
-    private Markov markov = new Markov(3);
     final List<Vec2i> inChunkCoords = new ArrayList<>(256); // [0,15]
     final List<Vec2i> relChunkCoords = new ArrayList<>(256); // [-8,7]
     public static final EnumSet<Material> GROUND_FLOOR_MATS = EnumSet.noneOf(Material.class);
@@ -79,7 +78,6 @@ public final class Generator implements Listener {
 
     public Generator enable() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
-        markov.scan(plugin.getResource("names/forest.txt"));
         for (int y = 0; y < 16; y += 1) {
             for (int x = 0; x < 16; x += 1) {
                 inChunkCoords.add(new Vec2i(x, y));
@@ -106,7 +104,6 @@ public final class Generator implements Listener {
         switch (zoneWorld.generatorState) {
         case 0:
             zoneWorld.loadBiomes();
-            zoneWorld.loadStructures();
             zoneWorld.prepareFindZones();
             zoneWorld.generatorState += 1;
             return true;
@@ -140,7 +137,7 @@ public final class Generator implements Listener {
             zoneWorld.generatorState += 1;
             return true;
         case 7:
-            if (!zoneWorld.adventurizeStep(markov, c -> generateStructure(world, zoneWorld, c))) {
+            if (!zoneWorld.adventurizeStep(c -> generateStructure(world, zoneWorld, c))) {
                 zoneWorld.generatorState += 1;
             }
             return true;
@@ -196,7 +193,7 @@ public final class Generator implements Listener {
             Block block = world.getHighestBlockAt(vec.x, vec.y, HeightMap.MOTION_BLOCKING_NO_LEAVES);
             Vec3i vec3 = new Vec3i(block.getX(), block.getY(), block.getZ());
             BoundingBox bb = new BoundingBox("bandit_camp", vec3.add(-8, -8, -8), vec3.add(7, 7, 7), chunk);
-            if (bb.overlapsAny(zoneWorld.structures)) return null;
+            if (!structureCache().within(world.getName(), bb.toStructureCuboid()).isEmpty()) return null;
             if (!isSuitableGroundFloor(block)) continue;
             // Success
             centerVec = vec;

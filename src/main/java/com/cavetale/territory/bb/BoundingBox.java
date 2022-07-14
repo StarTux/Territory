@@ -1,13 +1,8 @@
 package com.cavetale.territory.bb;
 
+import com.cavetale.structure.cache.Cuboid;
 import com.cavetale.territory.util.Vec2i;
 import com.cavetale.territory.util.Vec3i;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -47,6 +42,11 @@ public final class BoundingBox {
             && min.y <= other.max.y && max.y >= other.min.y;
     }
 
+    public boolean overlapsArea(BoundingBox other) {
+        return min.x <= other.max.x && max.x >= other.min.x
+            && min.z <= other.max.z && max.z >= other.min.z;
+    }
+
     public boolean overlapsAny(Collection<BoundingBox> others) {
         for (BoundingBox other : others) {
             if (overlaps(other)) return true;
@@ -54,29 +54,11 @@ public final class BoundingBox {
         return false;
     }
 
-    public static List<BoundingBox> fromStructuresFile(File file) throws IOException {
-        Gson gson = new Gson();
-        TypeToken<List<BoundingBox>> token = new TypeToken<List<BoundingBox>>() { };
-        List<BoundingBox> result = new ArrayList<>();
-        try (BufferedReader in = new BufferedReader(new FileReader(file))) {
-            String line;
-            while (null != (line = in.readLine())) {
-                String[] toks = line.split(",", 3);
-                if (toks.length != 3) throw new IllegalStateException("toks.length=" + toks.length);
-                int x = Integer.parseInt(toks[0]);
-                int z = Integer.parseInt(toks[1]);
-                List<BoundingBox> list;
-                try {
-                    list = gson.fromJson(toks[2], token.getType());
-                } catch (Exception e) {
-                    System.err.println(e.getMessage() + ": " + toks[2]);
-                    e.printStackTrace();
-                    continue;
-                }
-                result.addAll(list);
-            }
+    public boolean overlapsAnyArea(Collection<BoundingBox> others) {
+        for (BoundingBox other : others) {
+            if (overlapsArea(other)) return true;
         }
-        return result;
+        return false;
     }
 
     @Override
@@ -116,5 +98,9 @@ public final class BoundingBox {
             }
         }
         return true;
+    }
+
+    public Cuboid toStructureCuboid() {
+        return new Cuboid(min.x, min.y, min.z, max.x, max.y, max.z);
     }
 }

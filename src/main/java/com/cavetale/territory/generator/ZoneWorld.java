@@ -1,10 +1,8 @@
 package com.cavetale.territory.generator;
 
 import com.cavetale.territory.BiomeGroup;
-import com.cavetale.territory.StructureType;
 import com.cavetale.territory.Territory;
 import com.cavetale.territory.bb.BoundingBox;
-import com.cavetale.territory.util.Markov;
 import com.cavetale.territory.util.Vec2i;
 import com.google.gson.Gson;
 import java.awt.Color;
@@ -16,7 +14,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,7 +28,7 @@ import lombok.Getter;
 /**
  * Represents a Minecraft world in a folder. With the following:
  * - A biomes.txt file
- * - A structures.txt file
+ *
  * An instance provides methods to parse these files and turn them
  * into an image file, produce cohesive territories (zones) for
  * in-game enhancements.
@@ -52,7 +49,6 @@ public final class ZoneWorld {
     int width;
     int height;
     List<ZoneChunk> chunks;
-    List<BoundingBox> structures;
     List<Zone> zones;
     Map<Vec2i, ZoneChunk> findZonesPool;
     Map<Vec2i, Zone> zoneMap;
@@ -71,14 +67,6 @@ public final class ZoneWorld {
     public void loadBiomes() {
         try {
             chunks = ZoneChunk.fromBiomesFile(new File(folder, "biomes.txt"));
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    public void loadStructures() {
-        try {
-            structures = BoundingBox.fromStructuresFile(new File(folder, "structures.txt"));
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -111,30 +99,6 @@ public final class ZoneWorld {
         }
         if (!unhandled.isEmpty()) {
             System.err.println("Unhandled biomes: " + unhandled);
-        }
-    }
-
-    public void drawStructures() {
-        Set<String> unhandled = new HashSet<>();
-        Collections.sort(structures, (a, b) -> Integer.compare(a.min.y, b.min.y));
-        for (BoundingBox bb : structures) {
-            StructureType structureType = StructureType.forKey(bb.name);
-            if (structureType == null) {
-                unhandled.add(bb.name);
-                continue;
-            }
-            if (structureType == StructureType.MINESHAFT) continue;
-            if (structureType.color == 0) continue;
-            if (bb.width() < 16 || bb.length() < 16) continue;
-            int x1 = bb.min.x >> 4;
-            int x2 = bb.max.x >> 4;
-            int y1 = bb.min.z >> 4;
-            int y2 = bb.max.z >> 4;
-            rect(new Color(structureType.color), x1, y1, x2 - x1 + 1, y2 - y1 + 1);
-            print(new Color(structureType.color), bb.name.substring(0, 3), x1, y1);
-        }
-        if (!unhandled.isEmpty()) {
-            System.err.println("Unhandled structure types: " + unhandled);
         }
     }
 
@@ -525,13 +489,13 @@ public final class ZoneWorld {
         }
     }
 
-    public int adventurize(Markov markov, Function<Vec2i, BoundingBox> structureGenerator) {
+    public int adventurize(Function<Vec2i, BoundingBox> structureGenerator) {
         int steps = 0;
-        while (adventurizeStep(markov, structureGenerator)) steps += 1;
+        while (adventurizeStep(structureGenerator)) steps += 1;
         return steps;
     }
 
-    public boolean adventurizeStep(Markov markov, Function<Vec2i, BoundingBox> structureGenerator) {
+    public boolean adventurizeStep(Function<Vec2i, BoundingBox> structureGenerator) {
         Zone zone = null;
         for (Zone z : zones) {
             if (z.structuresDone) continue;
@@ -544,7 +508,7 @@ public final class ZoneWorld {
         if (zone.customStructures == null) {
             // initialize new zone
             zone.customStructures = new HashMap<>();
-            zone.name = markov.generate();
+            zone.name = zone.biome.name().toLowerCase(); // tmp
             random = new Random(zone.getCenter().hashCode());
             todoChunks = new ArrayList<>(zone.chunks);
         }
