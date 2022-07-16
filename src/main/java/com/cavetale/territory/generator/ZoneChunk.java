@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -31,7 +32,7 @@ public final class ZoneChunk {
     public final BiomeGroup biome;
     public final Map<BiomeGroup, Integer> biomeGroups;
 
-    public static List<ZoneChunk> fromBiomesFile(File file) throws IOException {
+    public static List<ZoneChunk> fromBiomesFile(File file, Logger logger) throws IOException {
         List<ZoneChunk> result = new ArrayList<>();
         try (BufferedReader in = new BufferedReader(new FileReader(file))) {
             String line;
@@ -57,7 +58,7 @@ public final class ZoneChunk {
                     }
                     BiomeGroup biomeGroup = BiomeGroup.of(name);
                     if (biomeGroup == null) {
-                        System.err.println("Unknown biome group: " + name);
+                        logger.warning("Unknown biome group: " + name);
                         continue;
                     }
                     biomeGroups.put(biomeGroup, count);

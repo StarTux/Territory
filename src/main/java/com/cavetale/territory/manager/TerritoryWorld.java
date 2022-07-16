@@ -19,7 +19,8 @@ public final class TerritoryWorld {
 
     public void addTerritory(Territory territory) {
         territoryList.add(territory);
-        for (Vec2i chunk : territory.chunks) {
+        for (int i = 0; i < territory.chunks.size(); i += 2) {
+            Vec2i chunk = new Vec2i(territory.chunks.get(i), territory.chunks.get(i + 1));
             territoryMap.put(chunk, territory);
         }
     }

@@ -31,7 +31,9 @@ public final class Zone {
 
     public Territory getTerritory() {
         Territory t = new Territory(name, biome.key, getCenter(), level);
-        t.chunks.addAll(chunks);
+        for (Vec2i chunk : chunks) {
+            t.addChunk(chunk);
+        }
         t.customStructures.addAll(customStructures.values());
         return t;
     }

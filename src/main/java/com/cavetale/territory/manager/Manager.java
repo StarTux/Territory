@@ -44,12 +44,12 @@ public final class Manager implements Listener {
                 try (FileReader fr = new FileReader(file)) {
                     territory = gson.fromJson(fr, Territory.class);
                 } catch (Exception e) {
-                    System.err.println("Parsing file " + file);
+                    plugin.getLogger().severe("Parsing file " + file);
                     e.printStackTrace();
                     continue;
                 }
                 if (territory == null) {
-                    System.err.println("File yields null: " + file);
+                    plugin.getLogger().severe("File yields null: " + file);
                     continue;
                 }
                 tworld.addTerritory(territory);

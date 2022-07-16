@@ -20,7 +20,7 @@ public final class Territory {
     public final String biome;
     public final Vec2i center;
     public final int level;
-    public final List<Vec2i> chunks = new ArrayList<>();
+    public final List<Integer> chunks = new ArrayList<>();
     public final List<BoundingBox> customStructures = new ArrayList<>();
 
     public String getFileName() {
@@ -32,5 +32,10 @@ public final class Territory {
             if (bb.contains(x, y, z)) return bb;
         }
         return null;
+    }
+
+    public void addChunk(Vec2i chunk) {
+        chunks.add(chunk.x);
+        chunks.add(chunk.y);
     }
 }

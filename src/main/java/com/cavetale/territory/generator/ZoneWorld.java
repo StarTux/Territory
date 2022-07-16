@@ -4,12 +4,10 @@ import com.cavetale.territory.BiomeGroup;
 import com.cavetale.territory.Territory;
 import com.cavetale.territory.bb.BoundingBox;
 import com.cavetale.territory.util.Vec2i;
-import com.google.gson.Gson;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -22,6 +20,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import lombok.Getter;
 
@@ -42,6 +41,7 @@ import lombok.Getter;
 @Getter
 public final class ZoneWorld {
     private final File folder;
+    private final Logger logger;
     int ax = 0;
     int bx = 0;
     int az = 0;
@@ -60,13 +60,14 @@ public final class ZoneWorld {
     List<Vec2i> todoChunks;
     Random random;
 
-    public ZoneWorld(final File folder) {
+    public ZoneWorld(final File folder, final Logger logger) {
         this.folder = folder;
+        this.logger = logger;
     }
 
     public void loadBiomes() {
         try {
-            chunks = ZoneChunk.fromBiomesFile(new File(folder, "biomes.txt"));
+            chunks = ZoneChunk.fromBiomesFile(new File(folder, "biomes.txt"), logger);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -98,7 +99,7 @@ public final class ZoneWorld {
             img.setRGB(x, y, chunk.biome.color.getRGB());
         }
         if (!unhandled.isEmpty()) {
-            System.err.println("Unhandled biomes: " + unhandled);
+            logger.severe("Unhandled biomes: " + unhandled);
         }
     }
 
@@ -442,7 +443,7 @@ public final class ZoneWorld {
                 zone.essential = true;
                 essentialBiomes.put(biomeGroup, zone.getCenter());
             } else {
-                System.err.println("No essential zone: " + biomeGroup);
+                logger.warning("No essential zone: " + biomeGroup);
             }
         }
     }
@@ -538,17 +539,11 @@ public final class ZoneWorld {
     }
 
     public void saveZone(Zone zone) {
-        Gson gson = new Gson();
         File folder2 = new File(folder, "cavetale.zones");
         folder2.mkdirs();
         Territory t = zone.getTerritory();
         File file = new File(folder2, t.getFileName());
-        try (FileWriter fw = new FileWriter(file)) {
-            gson.toJson(t, fw);
-        } catch (IOException ioe) {
-            System.err.println("Saving " + file);
-            ioe.printStackTrace();
-        }
+        Json.save(file, t, true);
     }
 
     public void debug(PrintStream out) {

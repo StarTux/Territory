@@ -39,7 +39,6 @@ public final class Generator implements Listener {
     final List<Vec2i> inChunkCoords = new ArrayList<>(256); // [0,15]
     final List<Vec2i> relChunkCoords = new ArrayList<>(256); // [-8,7]
     public static final EnumSet<Material> GROUND_FLOOR_MATS = EnumSet.noneOf(Material.class);
-    public static final EnumSet<Material> REJECTED_MATS = EnumSet.noneOf(Material.class);
 
     static {
         for (Material mat : Material.values()) {
@@ -47,7 +46,7 @@ public final class Generator implements Listener {
         }
     }
 
-    static boolean isSuitableGroundMat(Material mat) {
+    private static boolean isSuitableGroundMat(Material mat) {
         switch (mat) {
         case GRASS_BLOCK:
         case DIRT:
@@ -89,10 +88,11 @@ public final class Generator implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onDecoratorPostWorld(DecoratorPostWorldEvent event) {
+        if (event.getPass() != 2) return;
         World world = event.getWorld();
         ZoneWorld zoneWorld = worlds.get(world.getName());
         if (zoneWorld == null) {
-            zoneWorld = new ZoneWorld(world.getWorldFolder());
+            zoneWorld = new ZoneWorld(world.getWorldFolder(), plugin.getLogger());
             worlds.put(world.getName(), zoneWorld);
         }
         if (step(world, zoneWorld)) {
@@ -100,7 +100,8 @@ public final class Generator implements Listener {
         }
     }
 
-    boolean step(World world, ZoneWorld zoneWorld) {
+    private boolean step(World world, ZoneWorld zoneWorld) {
+        plugin.getLogger().info("Generator: Step " + zoneWorld.generatorState);
         switch (zoneWorld.generatorState) {
         case 0:
             zoneWorld.loadBiomes();
@@ -147,8 +148,9 @@ public final class Generator implements Listener {
             zoneWorld.drawZones(false, false);
             zoneWorld.drawEssentialBiomes();
             zoneWorld.drawZoneLabels();
+            zoneWorld.drawCustomStructures();
             try {
-                zoneWorld.saveImage(new File(world.getWorldFolder(), "cavetale.map.png"));
+                zoneWorld.saveImage(new File("map.png"));
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
@@ -157,7 +159,7 @@ public final class Generator implements Listener {
         }
     }
 
-    boolean timed(Supplier<Boolean> fun) {
+    private boolean timed(Supplier<Boolean> fun) {
         long now = System.nanoTime();
         do {
             if (!fun.get()) return false;
@@ -165,7 +167,9 @@ public final class Generator implements Listener {
         return true;
     }
 
-    boolean isSuitableGroundFloor(Block block) {
+    private  static final EnumSet<Material> REJECTED_MATS = EnumSet.noneOf(Material.class);
+
+    private boolean isSuitableGroundFloor(Block block) {
         Material mat = block.getType();
         if (GROUND_FLOOR_MATS.contains(mat)) return true;
         if (!REJECTED_MATS.contains(mat)) {
@@ -175,7 +179,7 @@ public final class Generator implements Listener {
         return false;
     }
 
-    BoundingBox generateStructure(World world, ZoneWorld zoneWorld, Vec2i chunk) {
+    protected BoundingBox generateStructure(World world, ZoneWorld zoneWorld, Vec2i chunk) {
         // Prepare random coords
         Random random = new Random(chunk.hashCode());
         Collections.shuffle(inChunkCoords, random);
@@ -227,7 +231,7 @@ public final class Generator implements Listener {
         return result;
     }
 
-    String secret(Random random) {
+    private String secret(Random random) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 16; i += 1) {
             sb.append((char) ((int) 'a' + random.nextInt(26)));

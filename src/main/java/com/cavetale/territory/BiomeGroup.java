@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 
 public enum BiomeGroup {
     VOID(Color.BLACK),
+    CAVE(Color.BLACK),
     RIVER(Color.BLUE),
     DESERT(Color.YELLOW),
     BIRCH(Color.LIGHT_GRAY),
@@ -92,7 +93,7 @@ public enum BiomeGroup {
             return COLD_OCEAN;
         } else if (biome.contains("OCEAN")) {
             return OCEAN;
-        } else if (biome.contains("MOUNTAIN")) {
+        } else if (biome.contains("MOUNTAIN") || biome.contains("PEAKS")) {
             return MOUNTAIN;
         } else if (biome.contains("SNOWY")) {
             return SNOWY;
@@ -114,8 +115,10 @@ public enum BiomeGroup {
             return FOREST;
         } else if (biome.contains("BEACH") || biome.contains("SHORE")) {
             return BEACH;
-        } else if (biome.contains("PLAINS")) {
+        } else if (biome.contains("PLAINS") || biome.contains("MEADOW")) {
             return PLAINS;
+        } else if (biome.contains("CAVES")) {
+            return CAVE;
         } else {
             return null;
         }
