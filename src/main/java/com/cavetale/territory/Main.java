@@ -19,7 +19,7 @@ public final class Main {
         Main main = new Main();
         main.run(args);
     }
-    
+
     private static void usage() {
         System.err.println("Usage: java -jar Territory.jar biomes|territories <worldpath> <imagepath>");
         System.exit(1);
