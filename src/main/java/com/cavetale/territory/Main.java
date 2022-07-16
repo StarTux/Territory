@@ -19,9 +19,27 @@ public final class Main {
         Main main = new Main();
         main.run(args);
     }
+    
+    private static void usage() {
+        System.err.println("Usage: java -jar Territory.jar biomes|territories <worldpath> <imagepath>");
+        System.exit(1);
+    }
 
     private void run(String[] args) throws Exception {
-        File folder = new File(args[0]);
+        if (args.length != 3) {
+            usage();
+            return;
+        }
+        boolean makeTerritories = false;
+        switch (args[0]) {
+        case "biomes": break;
+        case "territories":
+            makeTerritories = true;
+            break;
+        default: usage(); return;
+        }
+        File folder = new File(args[1]);
+        File imageFile = new File(args[2]);
         if (!folder.isDirectory()) {
             System.err.println("Not a folder: " + folder);
             System.exit(1);
@@ -30,11 +48,19 @@ public final class Main {
         zoneWorld = new ZoneWorld(folder, logger);
         time("loadBiomes", zoneWorld::loadBiomes);
         time("findZones", () -> zoneWorld.findZones());
-        time("draw", () -> {
-                zoneWorld.makeImage(0);
-                zoneWorld.drawBiomes();
-            });
-        zoneWorld.saveImage(new File("map.png"));
+        if (makeTerritories) {
+            time("mergeRivers", () -> zoneWorld.mergeRivers());
+            time("splitLargeZones", () -> zoneWorld.splitLargeZones(1000));
+            time("findEssentialBiomes", () -> zoneWorld.findEssentialBiomes(100));
+            time("mergeZones", () -> zoneWorld.mergeZones(500));
+        }
+        zoneWorld.makeImage(0);
+        if (!makeTerritories) {
+            zoneWorld.drawBiomes();
+        } else {
+            zoneWorld.drawZones(true, false);
+        }
+        zoneWorld.saveImage(imageFile);
         zoneWorld.debug(System.out);
     }
 
