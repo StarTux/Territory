@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public enum BiomeGroup {
-    VOID(Color.BLACK),
     CAVE(Color.BLACK),
     RIVER(Color.BLUE),
     DESERT(Color.YELLOW),
@@ -31,7 +30,13 @@ public enum BiomeGroup {
     PLAINS(Color.PINK),
     MUSHROOM(new Color(1f, 0f, 1f)),
     SNOWY(Color.WHITE),
-    FROZEN(new Color(0.5f, 0.5f, 1f));
+    FROZEN(new Color(0.5f, 0.5f, 1f)),
+    // Invalid
+    VOID(Color.BLACK),
+    END(Color.BLACK),
+    CUSTOM(Color.BLACK),
+    NETHER(Color.RED);
+    ;
 
     public static final Map<String, BiomeGroup> NAMES = new HashMap<>();
     public static final Map<String, BiomeGroup> KEYS = new HashMap<>();
@@ -93,9 +98,9 @@ public enum BiomeGroup {
             return COLD_OCEAN;
         } else if (biome.contains("OCEAN")) {
             return OCEAN;
-        } else if (biome.contains("MOUNTAIN") || biome.contains("PEAKS")) {
+        } else if (biome.contains("MOUNTAIN") || biome.contains("PEAKS") || biome.contains("HILLS")) {
             return MOUNTAIN;
-        } else if (biome.contains("SNOWY")) {
+        } else if (biome.contains("SNOWY") || biome.contains("GROVE")) {
             return SNOWY;
         } else if (biome.contains("TAIGA")) {
             return TAIGA;
@@ -117,8 +122,16 @@ public enum BiomeGroup {
             return BEACH;
         } else if (biome.contains("PLAINS") || biome.contains("MEADOW")) {
             return PLAINS;
-        } else if (biome.contains("CAVES")) {
+        } else if (biome.contains("CAVES") || biome.contains("DEEP_DARK")) {
             return CAVE;
+        } else if (biome.contains("NETHER") || biome.contains("SOUL_SAND_VALLEY") || biome.contains("BASALT_DELTAS")) {
+            return NETHER;
+        } else if (biome.contains("END")) {
+            return END;
+        } else if (biome.contains("VOID")) {
+            return VOID;
+        } else if (biome.contains("CUSTOM")) {
+            return CUSTOM;
         } else {
             return null;
         }
