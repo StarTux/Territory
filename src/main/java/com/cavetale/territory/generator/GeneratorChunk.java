@@ -1,7 +1,7 @@
 package com.cavetale.territory.generator;
 
 import com.cavetale.territory.BiomeGroup;
-import com.cavetale.territory.util.Vec2i;
+import com.cavetale.territory.struct.Vec2i;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -27,13 +27,13 @@ import lombok.RequiredArgsConstructor;
  * territories along river boundaries.
  */
 @RequiredArgsConstructor
-public final class ZoneChunk {
+public final class GeneratorChunk {
     public final Vec2i vec;
     public final BiomeGroup biome;
     public final Map<BiomeGroup, Integer> biomeGroups;
 
-    public static List<ZoneChunk> fromBiomesFile(File file, Logger logger) throws IOException {
-        List<ZoneChunk> result = new ArrayList<>();
+    public static List<GeneratorChunk> fromBiomesFile(File file, Logger logger) throws IOException {
+        List<GeneratorChunk> result = new ArrayList<>();
         try (BufferedReader in = new BufferedReader(new FileReader(file))) {
             String line;
             while (null != (line = in.readLine())) {
@@ -69,7 +69,7 @@ public final class ZoneChunk {
                     }
                 }
                 BiomeGroup mainBiome = isRiver ? BiomeGroup.RIVER : maxBiome;
-                result.add(new ZoneChunk(new Vec2i(x, z), mainBiome, biomeGroups));
+                result.add(new GeneratorChunk(new Vec2i(x, z), mainBiome, biomeGroups));
             }
         }
         return result;

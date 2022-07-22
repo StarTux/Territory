@@ -7,8 +7,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class TerritoryPlugin extends JavaPlugin {
+    private static TerritoryPlugin instance;
     private Generator generator;
     @Getter private Manager manager;
+
+    @Override
+    public void onLoad() {
+        instance = this;
+    }
 
     @Override
     public void onEnable() {
@@ -26,5 +32,9 @@ public final class TerritoryPlugin extends JavaPlugin {
         } else {
             getLogger().info("Manager disabled");
         }
+    }
+
+    public static TerritoryPlugin territoryPlugin() {
+        return instance;
     }
 }

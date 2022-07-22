@@ -1,9 +1,8 @@
 package com.cavetale.territory.generator;
 
 import com.cavetale.territory.BiomeGroup;
-import com.cavetale.territory.Territory;
-import com.cavetale.territory.bb.BoundingBox;
-import com.cavetale.territory.util.Vec2i;
+import com.cavetale.territory.struct.Territory;
+import com.cavetale.territory.struct.Vec2i;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,27 +14,26 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Zone abstraction for the Generator.
+ * GeneratorZone abstraction for the Generator.
  */
 @RequiredArgsConstructor @Getter
-public final class Zone {
-    final BiomeGroup biome;
-    final Set<Vec2i> chunks = new HashSet<>();
-    Map<Vec2i, BoundingBox> customStructures;
+public final class GeneratorZone {
+    protected final BiomeGroup biome;
+    protected final Set<Vec2i> chunks = new HashSet<>();
     private Vec2i center;
-    boolean essential = false; // deprecated?
-    boolean structuresDone = false;
-    int level;
-    List<Zone> neighbors;
-    String name;
+    protected boolean essential = false; // deprecated?
+    protected int level;
+    protected List<GeneratorZone> neighbors;
+    protected String name;
+    protected int id;
 
-    public Territory getTerritory() {
-        Territory t = new Territory(name, biome.key, getCenter(), level);
+    public Territory createTerritory() {
+        List<Integer> chunkList = new ArrayList<>();
         for (Vec2i chunk : chunks) {
-            t.addChunk(chunk);
+            chunkList.add(chunk.x);
+            chunkList.add(chunk.y);
         }
-        t.customStructures.addAll(customStructures.values());
-        return t;
+        return new Territory(id, level, getCenter(), name, biome.key, chunkList);
     }
 
     public boolean isBorder(Vec2i vec) {
@@ -46,13 +44,13 @@ public final class Zone {
                 || !chunks.contains(vec.add(-1, 0)));
     }
 
-    public void putIn(Map<Vec2i, Zone> map) {
+    public void putIn(Map<Vec2i, GeneratorZone> map) {
         for (Vec2i vec : chunks) {
             map.put(vec, this);
         }
     }
 
-    public void removeFrom(Map<Vec2i, Zone> map) {
+    public void removeFrom(Map<Vec2i, GeneratorZone> map) {
         for (Vec2i vec : chunks) {
             map.remove(vec);
         }
@@ -78,7 +76,7 @@ public final class Zone {
         return chunks.remove(vec);
     }
 
-    public void addAll(Zone other) {
+    public void addAll(GeneratorZone other) {
         center = null;
         chunks.addAll(other.chunks);
     }
@@ -114,11 +112,11 @@ public final class Zone {
         return center != null ? center : computeCenter();
     }
 
-    public void computeNeighbors(Map<Vec2i, Zone> zones) {
+    public void computeNeighbors(Map<Vec2i, GeneratorZone> zones) {
         neighbors = new ArrayList<>();
         for (Vec2i vec : getBorderChunks()) {
             for (Vec2i nbor : vec.getNeighbors()) {
-                Zone zone = zones.get(nbor);
+                GeneratorZone zone = zones.get(nbor);
                 if (zone == null || zone == this || neighbors.contains(zone)) continue;
                 neighbors.add(zone);
             }

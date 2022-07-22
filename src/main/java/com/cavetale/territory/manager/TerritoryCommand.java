@@ -2,21 +2,18 @@ package com.cavetale.territory.manager;
 
 import com.cavetale.core.command.CommandNode;
 import com.cavetale.core.command.CommandWarn;
-import com.cavetale.territory.Territory;
 import com.cavetale.territory.TerritoryPlugin;
-import com.cavetale.territory.bb.BoundingBox;
-import com.cavetale.territory.bb.Position;
-import com.cavetale.territory.util.Vec3i;
-import java.util.ArrayList;
+import com.cavetale.territory.struct.Territory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
+import static net.kyori.adventure.text.Component.join;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 @RequiredArgsConstructor
 public final class TerritoryCommand implements TabExecutor {
@@ -45,44 +42,21 @@ public final class TerritoryCommand implements TabExecutor {
         return rootNode.complete(sender, command, alias, args);
     }
 
-    boolean here(Player player, String[] args) {
+    private boolean here(Player player, String[] args) {
         Manager manager = plugin.getManager();
-        TerritoryWorld tworld = manager.getWorld(player.getWorld().getName());
-        if (tworld == null) throw new CommandWarn("Not a territory world: " + player.getWorld().getName());
-        player.sendMessage("World " + tworld.worldName + ": " + tworld.territoryList.size() + " territories");
-        Location location = player.getLocation();
-        // Territory
-        Territory territory = tworld.getTerritoryAtChunk(location.getBlockX() >> 4, location.getBlockZ() >> 4);
-        if (territory == null) throw new CommandWarn("There is no territory here!");
-        player.sendMessage("Territory " + territory.name
-                           + " biome=" + territory.biome
-                           + " lvl=" + territory.level
-                           + " center=" + territory.center
-                           + " chunks=" + territory.chunks.size()
-                           + " structs=" + territory.customStructures.size());
-        // Custom Structure
-        BoundingBox bb = territory.customStructureAt(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-        if (bb == null) throw new CommandWarn("Not custom structure here!");
-        player.sendMessage("Structure " + bb.name + " " + bb.min + "-" + bb.max);
-        // Positions
-        if (bb.getPositions() != null && !bb.getPositions().isEmpty()) {
-            List<String> names = new ArrayList<>();
-            for (Position position : bb.getPositions()) {
-                names.add(position.toString());
-                Vec3i vec = position.vector;
-                Location loc = player.getWorld().getBlockAt(vec.x, vec.y, vec.z).getLocation().add(.5, .5, .5);
-                player.spawnParticle(Particle.END_ROD, loc, 1, .0, .0, .0, .0);
-            }
-            player.sendMessage("Positions " + String.join(", ", names));
-        }
-        // Look at Block
-        Block block = player.getTargetBlock(4);
-        if (block != null) {
-            Position position = bb.getPositionAt(block.getX(), block.getY(), block.getZ());
-            if (position != null) {
-                player.sendMessage("LookAt " + position.name + " " + position.vector);
-            }
-        }
+        TerritoryWorld territoryWorld = manager.getWorld(player.getWorld().getName());
+        if (territoryWorld == null) throw new CommandWarn("Not a territory world: " + player.getWorld().getName());
+        player.sendMessage(text("World " + territoryWorld.worldName
+                                + ": " + territoryWorld.getTerritories().size() + " territories", AQUA));
+        Territory territory = territoryWorld.at(player.getLocation());
+        player.sendMessage(join(noSeparators(),
+                                text("Territory ", GRAY), text(territory.getName()),
+                                text(" id:", GRAY), text(territory.getId()),
+                                text(" lvl:", GRAY), text(territory.getLevel()),
+                                text(" c:", GRAY), text("" + territory.getCenter()),
+                                text(" name:", GRAY), text(territory.getName()),
+                                text(" biome:", GRAY), text(territory.getBiome()))
+                           .color(YELLOW));
         return true;
     }
 }

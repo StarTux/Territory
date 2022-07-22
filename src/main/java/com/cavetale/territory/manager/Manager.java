@@ -1,10 +1,6 @@
 package com.cavetale.territory.manager;
 
-import com.cavetale.territory.Territory;
 import com.cavetale.territory.TerritoryPlugin;
-import com.google.gson.Gson;
-import java.io.File;
-import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -27,34 +23,17 @@ public final class Manager implements Listener {
     public Manager enable() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
         territoryCommand = new TerritoryCommand(plugin).enable();
-        Gson gson = new Gson();
         for (String worldName : plugin.getConfig().getStringList("Manager.Worlds")) {
             World world = Bukkit.getWorld(worldName);
             if (world == null) {
                 plugin.getLogger().warning("World not found: " + worldName);
                 continue;
             }
-            TerritoryWorld tworld = new TerritoryWorld(worldName);
-            worlds.put(worldName, tworld);
-            File folder = new File(world.getWorldFolder(), "cavetale.zones");
-            for (File file : folder.listFiles()) {
-                String name = file.getName();
-                if (!name.startsWith("zone.") || !name.endsWith(".json")) continue;
-                Territory territory;
-                try (FileReader fr = new FileReader(file)) {
-                    territory = gson.fromJson(fr, Territory.class);
-                } catch (Exception e) {
-                    plugin.getLogger().severe("Parsing file " + file);
-                    e.printStackTrace();
-                    continue;
-                }
-                if (territory == null) {
-                    plugin.getLogger().severe("File yields null: " + file);
-                    continue;
-                }
-                tworld.addTerritory(territory);
-            }
-            plugin.getLogger().info(tworld.worldName + ": " + tworld.territoryList.size() + " territories");
+            TerritoryWorld territoryWorld = new TerritoryWorld(worldName);
+            worlds.put(worldName, territoryWorld);
+            territoryWorld.load();
+            plugin.getLogger().info(territoryWorld.worldName + ": "
+                                    + territoryWorld.getTerritories().size() + " territories");
         }
         for (Player player : Bukkit.getOnlinePlayers()) {
             enter(player);

@@ -1,4 +1,4 @@
-package com.cavetale.territory.util;
+package com.cavetale.territory.struct;
 
 import lombok.Value;
 

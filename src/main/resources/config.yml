@@ -1,6 +1,8 @@
 Generator:
   Enabled: false
+  Worlds:
+  - mine
 Manager:
   Enabled: false
   Worlds:
-  - world
+  - mine

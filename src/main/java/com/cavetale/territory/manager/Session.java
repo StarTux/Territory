@@ -1,6 +1,6 @@
 package com.cavetale.territory.manager;
 
-import com.cavetale.territory.Territory;
+import com.cavetale.territory.struct.Territory;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;

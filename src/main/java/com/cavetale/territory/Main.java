@@ -1,14 +1,11 @@
 package com.cavetale.territory;
 
-import com.cavetale.territory.bb.BoundingBox;
-import com.cavetale.territory.generator.ZoneWorld;
-import com.cavetale.territory.util.Vec2i;
-import com.cavetale.territory.util.Vec3i;
+import com.cavetale.territory.generator.GeneratorWorld;
 import java.io.File;
 import java.util.logging.Logger;
 
 public final class Main {
-    private ZoneWorld zoneWorld;
+    private GeneratorWorld generatorWorld;
     private final Logger logger;
 
     private Main() {
@@ -45,23 +42,23 @@ public final class Main {
             System.exit(1);
             return;
         }
-        zoneWorld = new ZoneWorld(folder, logger);
-        time("loadBiomes", zoneWorld::loadBiomes);
-        time("findZones", () -> zoneWorld.findZones());
+        generatorWorld = new GeneratorWorld(folder, logger);
+        time("loadBiomes", generatorWorld::loadBiomes);
+        time("findZones", () -> generatorWorld.findZones());
         if (makeTerritories) {
-            time("mergeRivers", () -> zoneWorld.mergeRivers());
-            time("splitLargeZones", () -> zoneWorld.splitLargeZones(1000));
-            time("findEssentialBiomes", () -> zoneWorld.findEssentialBiomes(100));
-            time("mergeZones", () -> zoneWorld.mergeZones(500));
+            time("mergeRivers", () -> generatorWorld.mergeRivers());
+            time("splitLargeZones", () -> generatorWorld.splitLargeZones(1000));
+            time("findEssentialBiomes", () -> generatorWorld.findEssentialBiomes(100));
+            time("mergeZones", () -> generatorWorld.mergeZones(500));
         }
-        zoneWorld.makeImage(0);
+        generatorWorld.makeImage(0);
         if (!makeTerritories) {
-            zoneWorld.drawBiomes();
+            generatorWorld.drawBiomes();
         } else {
-            zoneWorld.drawZones(true, false);
+            generatorWorld.drawZones(true, false);
         }
-        zoneWorld.saveImage(imageFile);
-        zoneWorld.debug(System.out);
+        generatorWorld.saveImage(imageFile);
+        generatorWorld.debug(System.out);
     }
 
     private static void time(String label, Runnable run) {
@@ -69,22 +66,5 @@ public final class Main {
         run.run();
         time = System.currentTimeMillis() - time;
         System.out.println("TIME " + label + ": " + ((double) time / 1000.0) + "s");
-    }
-
-    private BoundingBox generateStructure(Vec2i chunk) {
-        int x = chunk.x << 4;
-        int z = chunk.y << 4;
-        int y = 65;
-        BoundingBox result = new BoundingBox("bandit_camp",
-                                             new Vec3i(x, y - 4, z),
-                                             new Vec3i(x + 15, y + 4, z + 15),
-                                             chunk);
-        // for (BoundingBox bb : zoneWorld.getStructures()) {
-        //     if (bb.overlaps(result)) {
-        //         System.out.println("Overlaps: " + result + " / " + bb);
-        //         return null;
-        //     }
-        // }
-        return result;
     }
 }
