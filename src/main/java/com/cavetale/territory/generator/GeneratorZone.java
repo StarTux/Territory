@@ -14,17 +14,17 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * GeneratorZone abstraction for the Generator.
+ * Zone abstraction for the Generator.
+ * Zones are used to eventually generate Territories.
  */
 @RequiredArgsConstructor @Getter
 public final class GeneratorZone {
-    protected final BiomeGroup biome;
+    protected final BiomeGroup biomeGroup;
     protected final Set<Vec2i> chunks = new HashSet<>();
     private Vec2i center;
     protected boolean essential = false; // deprecated?
     protected int level;
     protected List<GeneratorZone> neighbors;
-    protected String name;
     protected int id;
 
     public Territory createTerritory() {
@@ -33,7 +33,7 @@ public final class GeneratorZone {
             chunkList.add(chunk.x);
             chunkList.add(chunk.y);
         }
-        return new Territory(id, level, getCenter(), name, biome.key, chunkList);
+        return new Territory(id, level, getCenter(), biomeGroup.humanName, biomeGroup, chunkList);
     }
 
     public boolean isBorder(Vec2i vec) {

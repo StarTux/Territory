@@ -1,12 +1,13 @@
 package com.cavetale.territory.generator;
 
-import com.cavetale.core.util.Json;
 import com.cavetale.structure.cache.Structure;
 import com.cavetale.structure.struct.Cuboid;
+import com.cavetale.territory.BiomeGroup;
 import com.cavetale.territory.TerritoryPlugin;
-import com.cavetale.territory.struct.SurfaceStructure;
+import com.cavetale.territory.generator.structure.GeneratorStructureCache;
+import com.cavetale.territory.generator.structure.SurfaceStructure;
+import com.cavetale.territory.struct.Territory;
 import com.cavetale.territory.struct.Vec2i;
-import com.cavetale.territory.struct.Vec3i;
 import com.winthier.decorator.DecoratorEvent;
 import com.winthier.decorator.DecoratorPostWorldEvent;
 import java.io.File;
@@ -18,13 +19,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.HeightMap;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
@@ -40,20 +40,34 @@ public final class Generator implements Listener {
     private final TerritoryPlugin plugin;
     private Map<String, GeneratorWorld> worlds = new HashMap<>();
     final List<Vec2i> inChunkCoords = new ArrayList<>(256); // [0,15]
-    final List<Vec2i> relChunkCoords = new ArrayList<>(256); // [-8,7]
+    private GeneratorStructureCache generatorStructureCache = new GeneratorStructureCache();
+    private final List<String> structureWorlds = List.of("structures");
 
     public Generator enable() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
         for (int y = 0; y < 16; y += 1) {
             for (int x = 0; x < 16; x += 1) {
                 inChunkCoords.add(new Vec2i(x, y));
-                relChunkCoords.add(new Vec2i(x - 8, y - 8));
             }
         }
-        for (String worldName : plugin.getConfig().getStringList("Manager.Worlds")) {
+        plugin.getLogger().info("Loading Worlds");
+        for (String worldName : plugin.getConfig().getStringList("Generator.Worlds")) {
             World world = Bukkit.getWorld(worldName);
-            worlds.put(worldName, new GeneratorWorld(world.getWorldFolder(), plugin.getLogger()));
+            if (world == null) {
+                throw new IllegalStateException("Generator world not found: " + worldName);
+            }
+            worlds.put(worldName, new GeneratorWorld(worldName, world.getWorldFolder(), plugin.getLogger()));
         }
+        // Load structure worlds
+        plugin.getLogger().info("Loading Structure Cache");
+        for (String worldName : structureWorlds) {
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) {
+                throw new IllegalStateException("Structure world not found: " + worldName);
+            }
+            generatorStructureCache.load(world);
+        }
+        generatorStructureCache.prepare();
         return this;
     }
 
@@ -66,14 +80,6 @@ public final class Generator implements Listener {
         if (step(world, generatorWorld)) {
             event.setCancelled(true);
         }
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onDecorator(DecoratorEvent event) {
-        if (event.getPass() != 2) return;
-        World world = event.getChunk().getWorld();
-        GeneratorWorld generatorWorld = worlds.get(world.getName());
-        if (generatorWorld == null) return;
     }
 
     private boolean step(World world, GeneratorWorld generatorWorld) {
@@ -128,7 +134,7 @@ public final class Generator implements Listener {
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-            plugin.getLogger().info("Generator: " + world.getName() + " Done!");
+            plugin.getLogger().info("[Generator] [" + world.getName() + "] Done!");
             return false;
         }
     }
@@ -143,46 +149,60 @@ public final class Generator implements Listener {
 
     private  static final EnumSet<Material> REJECTED_MATS = EnumSet.noneOf(Material.class);
 
-    protected Structure generateStructure(World world, GeneratorWorld generatorWorld, Vec2i chunk) {
-        // Prepare random coords
-        Random random = new Random(chunk.hashCode());
-        Collections.shuffle(inChunkCoords, random);
-        Collections.shuffle(relChunkCoords, random);
-        Iterator<Vec2i> inChunkIter = inChunkCoords.iterator();
-        Iterator<Vec2i> relChunkIter = relChunkCoords.iterator();
-        // Find center
-        Vec2i baseVec = new Vec2i(chunk.x << 4, chunk.y << 4); // base of the chunk
-        Cuboid boundingBox = null; // loop will set
-        while (inChunkIter.hasNext()) {
-            Vec2i inChunkVec = inChunkIter.next();
-            Vec2i vec = baseVec.add(inChunkVec);
-            Block block = world.getHighestBlockAt(vec.x, vec.y, HeightMap.MOTION_BLOCKING_NO_LEAVES);
-            Vec3i vec3 = new Vec3i(block.getX(), block.getY(), block.getZ());
-            // TODO find actual structure
-            boundingBox = new Cuboid(block.getX() - 8,
-                                     block.getY(),
-                                     block.getZ() - 8,
-                                     block.getX() + 7,
-                                     block.getY() + 15,
-                                     block.getZ() + 7);
-            Cuboid checkBox = boundingBox.outset(64, 64, 64);
-            if (!structureCache().within(world.getName(), checkBox).isEmpty()) return null;
+    @EventHandler(ignoreCancelled = true)
+    public void onDecorator(DecoratorEvent event) {
+        if (event.getPass() != 2) return;
+        Chunk chunk = event.getChunk();
+        World world = chunk.getWorld();
+        GeneratorWorld generatorWorld = worlds.get(world.getName());
+        if (generatorWorld == null) return;
+        Territory territory = generatorWorld.getTerritoryWorld().at(chunk);
+        BiomeGroup biomeGroup = territory.getBiomeGroup();
+        switch (biomeGroup.category) {
+        case SURFACE: generateSurfaceStructure(chunk, generatorWorld); break;
+        default: break;
         }
-        if (boundingBox == null) return null; // inChunkIter ran out
-        Structure structure = new Structure(world.getName(),
-                                            NamespacedKey.fromString("territory:bandig_camp"),
-                                            com.cavetale.structure.struct.Vec2i.of(chunk.x, chunk.y),
-                                            boundingBox,
-                                            Json.serialize(new SurfaceStructure()));
-        structureCache().addStructure(structure);
-        return structure;
     }
 
-    private String secret(Random random) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 16; i += 1) {
-            sb.append((char) ((int) 'a' + random.nextInt(26)));
+    /**
+     * Surface structures generate on or above Y=63 and will not
+     * tolerate nearby structures on or above 48 within 64 blocks of
+     * the chunk.
+     * @return true if structure was generated, false otherwise
+     */
+    protected boolean generateSurfaceStructure(Chunk chunk, GeneratorWorld generatorWorld) {
+        final Vec2i baseVec = new Vec2i(chunk.getX() << 4, chunk.getZ() << 4);
+        World world = chunk.getWorld();
+        Cuboid chunkZone = new Cuboid(baseVec.x, 48, baseVec.y,
+                                      baseVec.x + 15, world.getMaxHeight(), baseVec.y + 15);
+        Cuboid exclusionZone = chunkZone.outset(64, 0, 64);
+        var chunkVector = com.cavetale.structure.struct.Vec2i.of(chunk);
+        if (!structureCache().within(world.getName(), exclusionZone).isEmpty()) {
+            return false;
         }
-        return sb.toString();
+        // Prepare random coords
+        Collections.shuffle(inChunkCoords, generatorWorld.random);
+        final Iterator<Vec2i> inChunkIter = inChunkCoords.iterator();
+        // Find center
+        SurfaceStructure surfaceStructure = generatorStructureCache.nextSurfaceStructure();
+        while (inChunkIter.hasNext()) {
+            final Vec2i worldXZ = baseVec.add(inChunkIter.next());
+            Block anchor = world.getHighestBlockAt(worldXZ.x, worldXZ.y, HeightMap.MOTION_BLOCKING_NO_LEAVES);
+            if (anchor.getY() < 63) {
+                continue;
+            }
+            Cuboid boundingBox = surfaceStructure.createTargetBoundingBox(anchor);
+            if (!surfaceStructure.canPlace(world, boundingBox)) {
+                continue;
+            }
+            Structure structure = surfaceStructure.place(world, boundingBox, chunkVector);
+            if (structure == null) {
+                continue;
+            }
+            plugin.getLogger().info(chunkVector + ": Placed structure: " + structure);
+            structureCache().addStructure(structure);
+            return true;
+        }
+        return false;
     }
 }

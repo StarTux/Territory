@@ -42,7 +42,7 @@ public final class Main {
             System.exit(1);
             return;
         }
-        generatorWorld = new GeneratorWorld(folder, logger);
+        generatorWorld = new GeneratorWorld(folder.getName(), folder, logger);
         time("loadBiomes", generatorWorld::loadBiomes);
         time("findZones", () -> generatorWorld.findZones());
         if (makeTerritories) {

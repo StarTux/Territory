@@ -53,9 +53,10 @@ public final class TerritoryCommand implements TabExecutor {
                                 text("Territory ", GRAY), text(territory.getName()),
                                 text(" id:", GRAY), text(territory.getId()),
                                 text(" lvl:", GRAY), text(territory.getLevel()),
-                                text(" c:", GRAY), text("" + territory.getCenter()),
+                                text(" center:", GRAY), text("" + territory.getCenter()),
                                 text(" name:", GRAY), text(territory.getName()),
-                                text(" biome:", GRAY), text(territory.getBiome()))
+                                text(" biome:", GRAY), text(territory.getBiomeGroup().humanName),
+                                text(" chunk:", GRAY), text(territory.getChunkCount()))
                            .color(YELLOW));
         return true;
     }

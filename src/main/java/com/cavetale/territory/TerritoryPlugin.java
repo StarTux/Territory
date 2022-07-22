@@ -20,7 +20,13 @@ public final class TerritoryPlugin extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
         reloadConfig();
-        if (getConfig().getBoolean("Generator.Enabled") && Bukkit.getPluginManager().isPluginEnabled("Decorator")) {
+        if (getConfig().getBoolean("Generator.Enabled")) {
+            if (!Bukkit.getPluginManager().isPluginEnabled("Decorator")) {
+                throw new IllegalStateException("Decorator plugin not enabled!");
+            }
+            if (!Bukkit.getPluginManager().isPluginEnabled("Area")) {
+                throw new IllegalStateException("Area plugin not enabled!");
+            }
             generator = new Generator(this).enable();
             getLogger().info("Generator enabled");
         } else {

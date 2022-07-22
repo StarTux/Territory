@@ -1,5 +1,6 @@
 package com.cavetale.territory.struct;
 
+import com.cavetale.territory.BiomeGroup;
 import java.util.List;
 import lombok.Data;
 
@@ -19,18 +20,18 @@ public final class Territory {
     protected int level;
     protected Vec2i center;
     protected String name;
-    protected String biome;
+    protected BiomeGroup biomeGroup;
     protected List<Integer> chunks;
 
     public Territory() { }
 
     public Territory(final int id, final int level, final Vec2i center,
-                     final String name, final String biome, final List<Integer> chunks) {
+                     final String name, final BiomeGroup biomeGroup, final List<Integer> chunks) {
         this.id = id;
         this.level = level;
         this.center = center;
         this.name = name;
-        this.biome = biome;
+        this.biomeGroup = biomeGroup;
         this.chunks = chunks;
     }
 
@@ -49,5 +50,11 @@ public final class Territory {
     public Vec2i getChunk(int index) {
         return new Vec2i(chunks.get(index * 2),
                          chunks.get(index * 2 + 1));
+    }
+
+    public BiomeGroup getBiomeGroup() {
+        return biomeGroup != null
+            ? biomeGroup
+            : BiomeGroup.VOID;
     }
 }

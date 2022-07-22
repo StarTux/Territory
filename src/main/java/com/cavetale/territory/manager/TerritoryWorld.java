@@ -13,12 +13,17 @@ import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
 /**
- * World runtime for the Manager.
+ * World runtime for the Manager.  The generator also utilizes this in
+ * its later stages.
+ *
+ * This loads the territories from their files and preprocesses them
+ * for quick lookup.
  */
 @RequiredArgsConstructor
 public final class TerritoryWorld {
@@ -26,9 +31,9 @@ public final class TerritoryWorld {
     public final String worldName;
     @Getter public final List<Territory> territories = new ArrayList<>();
     public final Map<Vec2i, int[]> regionMap = new HashMap<>();
-    private final Territory nullTerritory = new Territory(0, 0, Vec2i.ZERO, "Nowhere", BiomeGroup.VOID.key, List.of());
+    private final Territory nullTerritory = new Territory(0, 0, Vec2i.ZERO, "Nowhere", BiomeGroup.VOID, List.of());
 
-    protected void load() {
+    public void load() {
         World world = Bukkit.getWorld(worldName);
         if (world == null) return;
         File folder = new File(world.getWorldFolder(), TERRITORY_FOLDER);
@@ -47,8 +52,12 @@ public final class TerritoryWorld {
             for (int i = 0; i < territory.getChunkCount(); i += 1) {
                 final Vec2i chunkVec = territory.getChunk(i);
                 final Vec2i regionVec = new Vec2i(chunkVec.x >> 5, chunkVec.y >> 5);
+                int chunkX = chunkVec.x % 32;
+                if (chunkX < 0) chunkX += 32;
+                int chunkZ = chunkVec.y % 32;
+                if (chunkZ < 0) chunkZ += 32;
                 regionMap.computeIfAbsent(regionVec, v -> new int[32 * 32])
-                    [chunkVec.x + chunkVec.y * 32] = tindex;
+                    [chunkX + chunkZ * 32] = tindex;
             }
         }
     }
@@ -61,10 +70,18 @@ public final class TerritoryWorld {
         return getTerritoryAtChunk(location.getBlockX() >> 4, location.getBlockZ() >> 4);
     }
 
+    public Territory at(Chunk chunk) {
+        return getTerritoryAtChunk(chunk.getX(), chunk.getZ());
+    }
+
     public Territory getTerritoryAtChunk(int x, int y) {
-        int[] region = regionMap.get(new Vec2i(x, y));
+        int[] region = regionMap.get(new Vec2i(x >> 5, y >> 5));
         if (region == null) return nullTerritory;
-        int tindex = region[x + y * 32];
+        int chunkX = x % 32;
+        if (chunkX < 0) chunkX += 32;
+        int chunkZ = y % 32;
+        if (chunkZ < 0) chunkZ += 32;
+        int tindex = region[chunkX + chunkZ * 32];
         return tindex > 0
             ? territories.get(tindex)
             : nullTerritory;

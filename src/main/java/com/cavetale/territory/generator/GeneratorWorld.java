@@ -2,6 +2,7 @@ package com.cavetale.territory.generator;
 
 import com.cavetale.core.util.Json;
 import com.cavetale.territory.BiomeGroup;
+import com.cavetale.territory.manager.TerritoryWorld;
 import com.cavetale.territory.struct.Territory;
 import com.cavetale.territory.struct.Vec2i;
 import java.awt.Color;
@@ -19,9 +20,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import static com.cavetale.territory.manager.TerritoryWorld.TERRITORY_FOLDER;
 
 /**
@@ -38,10 +41,12 @@ import static com.cavetale.territory.manager.TerritoryWorld.TERRITORY_FOLDER;
  *
  * It can also be used by a standalone app. Not Paper required.
  */
-@Getter
+@Getter @RequiredArgsConstructor
 public final class GeneratorWorld {
+    protected final String worldName;
     private final File folder;
     private final Logger logger;
+    protected final Random random = ThreadLocalRandom.current();
     int ax = 0;
     int bx = 0;
     int az = 0;
@@ -57,12 +62,8 @@ public final class GeneratorWorld {
     Graphics gfx;
     int generatorState;
     int maxLevel;
-    Random random;
-
-    public GeneratorWorld(final File folder, final Logger logger) {
-        this.folder = folder;
-        this.logger = logger;
-    }
+    // Used in late stage to generate structures
+    protected TerritoryWorld territoryWorld;
 
     public void loadBiomes() {
         try {
@@ -98,7 +99,7 @@ public final class GeneratorWorld {
             img.setRGB(x, y, chunk.biome.color.getRGB());
         }
         if (!unhandled.isEmpty()) {
-            logger.severe("Unhandled biomes: " + unhandled);
+            logger.severe("[GeneratorWorld] Unhandled biomes: " + unhandled);
         }
     }
 
@@ -108,14 +109,14 @@ public final class GeneratorWorld {
             if (dynamicColor) {
                 Vec2i center = zone.getCenter();
                 float east = (float) (center.x - ax) / (float) width;
-                float[] hsb = Color.RGBtoHSB(zone.biome.color.getRed(),
-                                             zone.biome.color.getGreen(),
-                                             zone.biome.color.getBlue(),
+                float[] hsb = Color.RGBtoHSB(zone.biomeGroup.color.getRed(),
+                                             zone.biomeGroup.color.getGreen(),
+                                             zone.biomeGroup.color.getBlue(),
                                              new float[3]);
                 float lvl = (float) zone.level / (float) maxLevel;
                 color = Color.getHSBColor(hsb[0], hsb[1], 1f - lvl);
             } else {
-                color = zone.biome.color;
+                color = zone.biomeGroup.color;
             }
             if (fill) {
                 for (Vec2i vec : zone.chunks) {
@@ -158,9 +159,9 @@ public final class GeneratorWorld {
             for (Vec2i vec : zone.chunks) {
                 if (left > vec.x) left = vec.x;
                 if (top > vec.y) top = vec.y;
-                img.setRGB(vec.x - ax, vec.y - az, zone.biome.color.getRGB());
+                img.setRGB(vec.x - ax, vec.y - az, zone.biomeGroup.color.getRGB());
             }
-            print(zone.biome.color, zone.biome.name(), left, top);
+            print(zone.biomeGroup.color, zone.biomeGroup.name(), left, top);
         }
     }
 
@@ -244,7 +245,7 @@ public final class GeneratorWorld {
                 if (zone.containsChunk(nbor)) continue;
                 GeneratorChunk nborChunk = findZonesPool.get(nbor);
                 nbor = nborChunk.vec;
-                if (nborChunk.biome != zone.biome) continue;
+                if (nborChunk.biome != zone.biomeGroup) continue;
                 findZonesPool.remove(nbor);
                 todo.add(nbor);
                 zone.addChunk(nbor);
@@ -305,12 +306,12 @@ public final class GeneratorWorld {
     public boolean mergeRiversStep() {
         boolean result = false;
         for (GeneratorZone zone : new ArrayList<>(zones)) {
-            if (zone.biome == BiomeGroup.RIVER) continue;
+            if (zone.biomeGroup == BiomeGroup.RIVER) continue;
             for (Vec2i chunk : zone.getBorderChunks()) {
                 for (Vec2i chunk2 : chunk.getNeighbors()) {
                     GeneratorZone nbor = zoneMap.get(chunk2);
                     if (nbor == null || nbor == zone) continue;
-                    if (nbor.biome != BiomeGroup.RIVER) continue;
+                    if (nbor.biomeGroup != BiomeGroup.RIVER) continue;
                     zone.addChunk(chunk2);
                     nbor.removeChunk(chunk2);
                     zoneMap.put(chunk2, zone);
@@ -341,12 +342,11 @@ public final class GeneratorWorld {
         Vec2i start = dim.x >= dim.y
             ? Vec2i.minX(zone.chunks)
             : Vec2i.minY(zone.chunks);
-        GeneratorZone newZone = new GeneratorZone(zone.biome);
+        GeneratorZone newZone = new GeneratorZone(zone.biomeGroup);
         zones.add(newZone);
         List<Vec2i> todo = new ArrayList<>();
         todo.add(start);
         int finalSize = Math.min(preferredSize, zone.size() / 2);
-        random = new Random(start.hashCode());
         while (!todo.isEmpty() && newZone.size() < finalSize) {
             Vec2i chunk = todo.remove(random.nextInt(todo.size()));
             if (!zone.containsChunk(chunk)) continue;
@@ -382,7 +382,7 @@ public final class GeneratorWorld {
         zones.remove(zone);
         zone.removeFrom(zoneMap);
         for (Set<Vec2i> set : list) {
-            GeneratorZone newZone = new GeneratorZone(zone.biome);
+            GeneratorZone newZone = new GeneratorZone(zone.biomeGroup);
             newZone.addAllChunks(set);
             zones.add(newZone);
             newZone.essential = zone.essential;
@@ -415,11 +415,11 @@ public final class GeneratorWorld {
                     BiomeGroup.MUSHROOM);
         for (GeneratorZone zone : zones) {
             int absCoord = zone.getCenter().minAbsCoord();
-            GeneratorZone old = biomeZoneMap.get(zone.biome);
+            GeneratorZone old = biomeZoneMap.get(zone.biomeGroup);
             if (old != null && old.size() >= preferredSize && zone.size() < preferredSize) continue;
             if (old == null || absCoord < old.getCenter().minAbsCoord()
                 || (old.size() < preferredSize && zone.size() >= preferredSize)) {
-                biomeZoneMap.put(zone.biome, zone);
+                biomeZoneMap.put(zone.biomeGroup, zone);
             }
         }
         essentialBiomes = new EnumMap<>(BiomeGroup.class);
@@ -429,7 +429,7 @@ public final class GeneratorWorld {
                 zone.essential = true;
                 essentialBiomes.put(biomeGroup, zone.getCenter());
             } else {
-                logger.warning("No essential zone: " + biomeGroup);
+                logger.warning("[GeneratorWorld] No essential zone: " + biomeGroup);
             }
         }
     }
@@ -453,24 +453,6 @@ public final class GeneratorWorld {
                     if (scaledZones.contains(newZone)) continue;
                     newZone.level = maxLevel;
                     scaledZones.add(newZone);
-                }
-            }
-            // Pad surrounding (for now) empty biomes, which means
-            // oceans, and give them the current level.
-            for (GeneratorZone scaled : new ArrayList<>(scaledZones)) {
-                for (GeneratorZone newZone : scaled.neighbors) {
-                    if (scaledZones.contains(newZone)) continue;
-                    switch (newZone.biome) {
-                    case OCEAN:
-                    case WARM_OCEAN:
-                    case COLD_OCEAN:
-                    case RIVER: // Shouldn't exist but let's be sure
-                        newZone.level = maxLevel;
-                        scaledZones.add(newZone);
-                        break;
-                    default:
-                        break;
-                    }
                 }
             }
         }
@@ -498,10 +480,19 @@ public final class GeneratorWorld {
     public void debug(PrintStream out) {
         int[] count = new int[BiomeGroup.values().length];
         for (GeneratorZone zone : zones) {
-            count[zone.biome.ordinal()] += zone.size();
+            count[zone.biomeGroup.ordinal()] += zone.size();
         }
         for (BiomeGroup biomeGroup : BiomeGroup.values()) {
             out.println(count[biomeGroup.ordinal()] + " " + biomeGroup + " " + biomeGroup.names);
         }
+    }
+
+    public TerritoryWorld getTerritoryWorld() {
+        if (territoryWorld == null) {
+            logger.info("[GeneratorWorld] Loading TerritoryWorld");
+            territoryWorld = new TerritoryWorld(worldName);
+            territoryWorld.load();
+        }
+        return territoryWorld;
     }
 }

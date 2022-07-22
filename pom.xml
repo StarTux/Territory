@@ -84,14 +84,6 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Decorator -->
-    <dependency>
-      <groupId>com.winthier.decorator</groupId>
-      <artifactId>decorator</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-
     <!-- Core -->
     <dependency>
       <groupId>com.cavetale.core</groupId>
@@ -100,10 +92,26 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Structure -->
+    <!-- Structure, used by all -->
     <dependency>
       <groupId>com.cavetale.structure</groupId>
       <artifactId>structure</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Decorator, used by Generator -->
+    <dependency>
+      <groupId>com.winthier.decorator</groupId>
+      <artifactId>decorator</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Area, used by Generator -->
+    <dependency>
+      <groupId>com.cavetale.area</groupId>
+      <artifactId>area</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
@@ -114,14 +122,6 @@
       <artifactId>lombok</artifactId>
       <version>1.18.20</version>
       <scope>provided</scope>
-    </dependency>
-
-    <!-- Gson -->
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-      <version>2.8.6</version>
-      <scope>compile</scope>
     </dependency>
 
     <!-- JUnit Testing -->

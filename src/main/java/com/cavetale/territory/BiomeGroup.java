@@ -6,57 +6,77 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
+import static com.cavetale.core.util.CamelCase.toCamelCase;
 
 public enum BiomeGroup {
-    CAVE(Color.BLACK),
-    RIVER(Color.BLUE),
-    DESERT(Color.YELLOW),
-    BIRCH(Color.LIGHT_GRAY),
-    OCEAN(new Color(0f, 0f, .5f)),
-    WARM_OCEAN(new Color(0f, 0f, 1f)),
-    COLD_OCEAN(new Color(0f, 0f, .25f)),
-    MOUNTAIN(Color.GRAY),
-    TAIGA(Color.DARK_GRAY),
-    BAMBOO(Color.ORANGE),
-    JUNGLE(Color.ORANGE),
-    SAVANNA(Color.RED),
-    BADLANDS(Color.RED),
-    SWAMP(new Color(.5f, .25f, 0f)),
-    DARK_FOREST(new Color(0f, .5f, 0f)),
-    FOREST(Color.GREEN),
-    BEACH(Color.YELLOW),
-    PLAINS(Color.PINK),
-    MUSHROOM(new Color(1f, 0f, 1f)),
-    SNOWY(Color.WHITE),
-    FROZEN(new Color(0.5f, 0.5f, 1f)),
+    CAVE(Color.BLACK, Category.INVALID),
+    RIVER(Color.BLUE, Category.INVALID),
+    DESERT(Color.YELLOW, Category.SURFACE),
+    BIRCH(Color.LIGHT_GRAY, Category.SURFACE),
+    OCEAN(new Color(0f, 0f, .5f), Category.SURFACE),
+    WARM_OCEAN(new Color(0f, 0f, 1f), Category.AQUATIC),
+    COLD_OCEAN(new Color(0f, 0f, .25f), Category.AQUATIC),
+    MOUNTAIN(Color.GRAY, Category.SURFACE),
+    TAIGA(Color.DARK_GRAY, Category.SURFACE),
+    BAMBOO(Color.ORANGE, Category.SURFACE),
+    JUNGLE(Color.ORANGE, Category.SURFACE),
+    SAVANNA(Color.RED, Category.SURFACE),
+    BADLANDS(Color.RED, Category.SURFACE),
+    SWAMP(new Color(.5f, .25f, 0f), Category.SURFACE),
+    DARK_FOREST(new Color(0f, .5f, 0f), Category.SURFACE),
+    FOREST(Color.GREEN, Category.SURFACE),
+    BEACH(Color.YELLOW, Category.SURFACE),
+    PLAINS(Color.PINK, Category.SURFACE),
+    MUSHROOM(new Color(1f, 0f, 1f), Category.SURFACE),
+    SNOWY(Color.WHITE, Category.SURFACE),
+    FROZEN(new Color(0.5f, 0.5f, 1f), Category.SURFACE),
     // Invalid
-    VOID(Color.BLACK),
-    END(Color.BLACK),
-    CUSTOM(Color.BLACK),
-    NETHER(Color.RED);
+    VOID(Color.BLACK, Category.INVALID),
+    END(Color.BLACK, Category.END),
+    CUSTOM(Color.BLACK, Category.INVALID),
+    NETHER(Color.RED, Category.NETHER);
     ;
+
+    /**
+     * The category tells the surface generator how to treat the
+     * place.
+     */
+    @RequiredArgsConstructor
+    public enum Category {
+        SURFACE(true),
+        AQUATIC(true),
+        NETHER(false),
+        END(false),
+        /**
+         * Invalid biomes should never or rarely occur in the world
+         * because they are under ground or merged away during
+         * PostWorld.
+         */
+        INVALID(false);
+
+        /**
+         * For simplicity's sake, the BiomeGroup's essential quality
+         * will be dictated by the Category.
+         */
+        public final boolean essential;
+    }
 
     public static final Map<String, BiomeGroup> NAMES = new HashMap<>();
     public static final Map<String, BiomeGroup> KEYS = new HashMap<>();
-    public final Set<String> names = new HashSet<>();
+    public final Category category;
     public final Color color;
     public final boolean essential;
     public final String key;
     public final String humanName;
+    public final Set<String> names = new HashSet<>();
 
-    BiomeGroup(final Color color, final boolean essential) {
+    BiomeGroup(final Color color, final Category category) {
+        this.category = category;
         this.key = name().toLowerCase();
         this.color = color;
-        this.essential = essential;
-        this.humanName = Stream.of(name().split("_"))
-            .map(s -> s.substring(0, 1) + s.substring(1).toLowerCase())
-            .collect(Collectors.joining(" "));
-    }
-
-    BiomeGroup(final Color color) {
-        this(color, false);
+        this.essential = category.essential;
+        this.humanName = toCamelCase(" ", this);
     }
 
     static {
