@@ -489,9 +489,9 @@ public final class GeneratorWorld {
 
     public TerritoryWorld getTerritoryWorld() {
         if (territoryWorld == null) {
-            logger.info("[GeneratorWorld] Loading TerritoryWorld");
             territoryWorld = new TerritoryWorld(worldName);
             territoryWorld.load();
+            logger.info("[GeneratorWorld] Loaded TerritoryWorld: " + territoryWorld.getTerritories().size());
         }
         return territoryWorld;
     }

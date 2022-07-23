@@ -31,9 +31,9 @@ public interface GeneratorStructure {
         Cuboid boundingBox = getBoundingBox();
         Vec3i anchor = getAnchor();
         Vec3i min = boundingBox.getMin();
-        return boundingBox.shift(base.getX() - min.x - anchor.x,
-                                 base.getY() - min.y - anchor.y,
-                                 base.getZ() - min.z - anchor.z);
+        return boundingBox.shift((base.getX() - min.x) - (anchor.x - min.x),
+                                 (base.getY() - min.y) - (anchor.y - min.y),
+                                 (base.getZ() - min.z) - (anchor.z - min.z));
     }
 
     boolean canPlace(World targetWorld, Cuboid targetBoundingBox);

@@ -47,7 +47,7 @@ public final class GeneratorStructureCache {
     public SurfaceStructure nextSurfaceStructure() {
         SurfaceStructure result = surfaceStructures.get(surfaceStructureIndex);
         surfaceStructureIndex += 1;
-        if (surfaceStructureIndex >= surfaceStructureIndex) {
+        if (surfaceStructureIndex >= surfaceStructures.size()) {
             surfaceStructureIndex = 0;
         }
         return result;

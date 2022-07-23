@@ -27,10 +27,10 @@ import org.bukkit.block.Block;
  */
 @RequiredArgsConstructor
 public final class TerritoryWorld {
-    public static final String TERRITORY_FOLDER = "territories";
+    public static final String TERRITORY_FOLDER = "territory";
     public final String worldName;
-    @Getter public final List<Territory> territories = new ArrayList<>();
-    public final Map<Vec2i, int[]> regionMap = new HashMap<>();
+    @Getter private final List<Territory> territories = new ArrayList<>();
+    private final Map<Vec2i, int[]> regionMap = new HashMap<>();
     private final Territory nullTerritory = new Territory(0, 0, Vec2i.ZERO, "Nowhere", BiomeGroup.VOID, List.of());
 
     public void load() {
@@ -52,12 +52,10 @@ public final class TerritoryWorld {
             for (int i = 0; i < territory.getChunkCount(); i += 1) {
                 final Vec2i chunkVec = territory.getChunk(i);
                 final Vec2i regionVec = new Vec2i(chunkVec.x >> 5, chunkVec.y >> 5);
-                int chunkX = chunkVec.x % 32;
-                if (chunkX < 0) chunkX += 32;
-                int chunkZ = chunkVec.y % 32;
-                if (chunkZ < 0) chunkZ += 32;
+                int chunkX = chunkVec.x & 31;
+                int chunkZ = chunkVec.y & 31;
                 regionMap.computeIfAbsent(regionVec, v -> new int[32 * 32])
-                    [chunkX + chunkZ * 32] = tindex;
+                    [chunkX + chunkZ * 32] = tindex + 1;
             }
         }
     }
@@ -77,13 +75,11 @@ public final class TerritoryWorld {
     public Territory getTerritoryAtChunk(int x, int y) {
         int[] region = regionMap.get(new Vec2i(x >> 5, y >> 5));
         if (region == null) return nullTerritory;
-        int chunkX = x % 32;
-        if (chunkX < 0) chunkX += 32;
-        int chunkZ = y % 32;
-        if (chunkZ < 0) chunkZ += 32;
+        int chunkX = x & 31;
+        int chunkZ = y & 31;
         int tindex = region[chunkX + chunkZ * 32];
         return tindex > 0
-            ? territories.get(tindex)
+            ? territories.get(tindex - 1)
             : nullTerritory;
     }
 }
