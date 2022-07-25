@@ -32,11 +32,11 @@ public final class Manager implements Listener {
             TerritoryWorld territoryWorld = new TerritoryWorld(worldName);
             worlds.put(worldName, territoryWorld);
             territoryWorld.load();
-            plugin.getLogger().info(territoryWorld.worldName + ": "
+            plugin.getLogger().info("[Manager] " + territoryWorld.worldName + ": "
                                     + territoryWorld.getTerritories().size() + " territories");
         }
         for (Player player : Bukkit.getOnlinePlayers()) {
-            enter(player);
+            sessions.put(player.getUniqueId(), new Session(player));
         }
         return this;
     }
@@ -45,22 +45,14 @@ public final class Manager implements Listener {
         sessions.clear();
     }
 
-    void enter(Player player) {
-        sessions.put(player.getUniqueId(), new Session(player));
-    }
-
-    void exit(Player player) {
-        sessions.remove(player.getUniqueId());
-    }
-
     @EventHandler
     void onPlayerJoin(PlayerJoinEvent event) {
-        enter(event.getPlayer());
+        sessions.put(player.getUniqueId(), new Session(player));
     }
 
     @EventHandler
     void onPlayerQuit(PlayerQuitEvent event) {
-        exit(event.getPlayer());
+        sessions.remove(player.getUniqueId());
     }
 
     public Session sessionOf(Player player) {
