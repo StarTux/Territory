@@ -47,12 +47,13 @@ public final class Manager implements Listener {
 
     @EventHandler
     void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
         sessions.put(player.getUniqueId(), new Session(player));
     }
 
     @EventHandler
     void onPlayerQuit(PlayerQuitEvent event) {
-        sessions.remove(player.getUniqueId());
+        sessions.remove(event.getPlayer().getUniqueId());
     }
 
     public Session sessionOf(Player player) {

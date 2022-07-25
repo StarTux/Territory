@@ -1,9 +1,9 @@
 package com.cavetale.territory.manager;
 
+import com.cavetale.core.struct.Vec2i;
 import com.cavetale.core.util.Json;
 import com.cavetale.territory.BiomeGroup;
 import com.cavetale.territory.struct.Territory;
-import com.cavetale.territory.struct.Vec2i;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -51,9 +51,9 @@ public final class TerritoryWorld {
             Territory territory = territories.get(tindex);
             for (int i = 0; i < territory.getChunkCount(); i += 1) {
                 final Vec2i chunkVec = territory.getChunk(i);
-                final Vec2i regionVec = new Vec2i(chunkVec.x >> 5, chunkVec.y >> 5);
+                final Vec2i regionVec = new Vec2i(chunkVec.x >> 5, chunkVec.z >> 5);
                 int chunkX = chunkVec.x & 31;
-                int chunkZ = chunkVec.y & 31;
+                int chunkZ = chunkVec.z & 31;
                 regionMap.computeIfAbsent(regionVec, v -> new int[32 * 32])
                     [chunkX + chunkZ * 32] = tindex + 1;
             }

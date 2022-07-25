@@ -1,11 +1,11 @@
 package com.cavetale.territory.generator.structure;
 
+import com.cavetale.area.struct.Area;
+import com.cavetale.core.struct.Cuboid;
+import com.cavetale.core.struct.Vec2i;
+import com.cavetale.core.struct.Vec3i;
 import com.cavetale.core.util.Json;
 import com.cavetale.structure.cache.Structure;
-import com.cavetale.structure.struct.Cuboid;
-import com.cavetale.structure.struct.Vec2i;
-import com.cavetale.structure.struct.Vec3i;
-import com.cavetale.territory.convert.Converter;
 import com.cavetale.territory.struct.TerritoryStructure;
 import com.destroystokyo.paper.MaterialSetTag;
 import com.destroystokyo.paper.MaterialTags;
@@ -40,27 +40,27 @@ public final class SurfaceStructure implements GeneratorStructure {
     private final Cuboid boundingBox;
     private final Map<String, List<Cuboid>> markers = new HashMap<>();
 
-    protected SurfaceStructure(final World world, final String name, final List<com.cavetale.area.struct.Cuboid> cuboids) {
+    protected SurfaceStructure(final World world, final String name, final List<Area> areas) {
         this.originWorld = world;
         this.name = name;
         Vec3i theAnchor = null;
-        this.boundingBox = Converter.areaToStructure(cuboids.get(0));
-        for (com.cavetale.area.struct.Cuboid cuboid : cuboids.subList(1, cuboids.size())) {
-            if (cuboid.name == null) {
+        this.boundingBox = areas.get(0).toCuboid();
+        for (Area area : areas.subList(1, areas.size())) {
+            if (area.name == null) {
                 continue;
             }
-            switch (cuboid.name) {
+            switch (area.name) {
             case "anchor":
-                theAnchor = Converter.areaToStructure(cuboid.min);
+                theAnchor = area.min;
                 break;
             case "air":
-                markers.computeIfAbsent("air", n -> new ArrayList<>()).add(Converter.areaToStructure(cuboid));
+                markers.computeIfAbsent("air", n -> new ArrayList<>()).add(area.toCuboid());
                 break;
             case "ground":
-                markers.computeIfAbsent("ground", n -> new ArrayList<>()).add(Converter.areaToStructure(cuboid));
+                markers.computeIfAbsent("ground", n -> new ArrayList<>()).add(area.toCuboid());
                 break;
             default:
-                territoryPlugin().getLogger().warning("[SurfaceStructure] [" + name + "] Unknown cuboid name: " + cuboid.name);
+                territoryPlugin().getLogger().warning("[SurfaceStructure] [" + name + "] Unknown area name: " + area.name);
             }
         }
         this.anchor = theAnchor != null

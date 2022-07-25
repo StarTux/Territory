@@ -1,5 +1,6 @@
 package com.cavetale.territory.struct;
 
+import com.cavetale.core.struct.Vec2i;
 import com.cavetale.territory.BiomeGroup;
 import java.util.List;
 import lombok.Data;
@@ -40,7 +41,7 @@ public final class Territory {
             .replace(" ", "")
             .replace("/", "")
             .replace(".", "");
-        return "territory." + id + "." + center.x + "." + center.y + "." + simpleName + ".json";
+        return "territory." + id + "." + center.x + "." + center.z + "." + simpleName + ".json";
     }
 
     public int getChunkCount() {

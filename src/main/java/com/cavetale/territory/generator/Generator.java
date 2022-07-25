@@ -1,13 +1,13 @@
 package com.cavetale.territory.generator;
 
+import com.cavetale.core.struct.Cuboid;
+import com.cavetale.core.struct.Vec2i;
 import com.cavetale.structure.cache.Structure;
-import com.cavetale.structure.struct.Cuboid;
 import com.cavetale.territory.BiomeGroup;
 import com.cavetale.territory.TerritoryPlugin;
 import com.cavetale.territory.generator.structure.GeneratorStructureCache;
 import com.cavetale.territory.generator.structure.SurfaceStructure;
 import com.cavetale.territory.struct.Territory;
-import com.cavetale.territory.struct.Vec2i;
 import com.winthier.decorator.DecoratorEvent;
 import com.winthier.decorator.DecoratorPostWorldEvent;
 import java.io.File;
@@ -173,10 +173,10 @@ public final class Generator implements Listener {
     protected boolean generateSurfaceStructure(Chunk chunk, GeneratorWorld generatorWorld) {
         final Vec2i baseVec = new Vec2i(chunk.getX() << 4, chunk.getZ() << 4);
         World world = chunk.getWorld();
-        Cuboid chunkZone = new Cuboid(baseVec.x, 48, baseVec.y,
-                                      baseVec.x + 15, world.getMaxHeight(), baseVec.y + 15);
+        Cuboid chunkZone = new Cuboid(baseVec.x, 48, baseVec.z,
+                                      baseVec.x + 15, world.getMaxHeight(), baseVec.z + 15);
         Cuboid exclusionZone = chunkZone.outset(64, 0, 64);
-        var chunkVector = com.cavetale.structure.struct.Vec2i.of(chunk);
+        var chunkVector = Vec2i.of(chunk);
         if (!structureCache().within(world.getName(), exclusionZone).isEmpty()) {
             return false;
         }
@@ -187,7 +187,7 @@ public final class Generator implements Listener {
         SurfaceStructure surfaceStructure = generatorStructureCache.nextSurfaceStructure();
         while (inChunkIter.hasNext()) {
             final Vec2i worldXZ = baseVec.add(inChunkIter.next());
-            Block anchor = world.getHighestBlockAt(worldXZ.x, worldXZ.y, HeightMap.MOTION_BLOCKING_NO_LEAVES);
+            Block anchor = world.getHighestBlockAt(worldXZ.x, worldXZ.z, HeightMap.MOTION_BLOCKING_NO_LEAVES);
             if (anchor.getY() < 63) {
                 continue;
             }

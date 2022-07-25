@@ -1,7 +1,8 @@
 package com.cavetale.territory.generator.structure;
 
+import com.cavetale.area.struct.Area;
 import com.cavetale.area.struct.AreasFile;
-import com.cavetale.structure.struct.Cuboid;
+import com.cavetale.core.struct.Cuboid;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,7 +63,7 @@ public final class GeneratorStructureCache {
                                                   + " Nothing found: " + name);
             return;
         }
-        for (Map.Entry<String, List<com.cavetale.area.struct.Cuboid>> entry : areasFile.areas.entrySet()) {
+        for (Map.Entry<String, List<Area>> entry : areasFile.areas.entrySet()) {
             SurfaceStructure surfaceStructure = new SurfaceStructure(world, entry.getKey(), entry.getValue());
             if (!surfaceStructure.isValid()) {
                 territoryPlugin().getLogger().severe("[GeneratorStructureCache] not valid: " + surfaceStructure);

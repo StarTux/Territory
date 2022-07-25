@@ -1,7 +1,7 @@
 package com.cavetale.territory.generator;
 
 import com.cavetale.territory.BiomeGroup;
-import com.cavetale.territory.struct.Vec2i;
+import com.cavetale.core.struct.Vec2i;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;

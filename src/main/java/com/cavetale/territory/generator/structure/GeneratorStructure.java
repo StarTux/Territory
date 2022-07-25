@@ -1,9 +1,9 @@
 package com.cavetale.territory.generator.structure;
 
+import com.cavetale.core.struct.Cuboid;
+import com.cavetale.core.struct.Vec2i;
+import com.cavetale.core.struct.Vec3i;
 import com.cavetale.structure.cache.Structure;
-import com.cavetale.structure.struct.Cuboid;
-import com.cavetale.structure.struct.Vec2i;
-import com.cavetale.structure.struct.Vec3i;
 import java.util.List;
 import org.bukkit.World;
 import org.bukkit.block.Block;

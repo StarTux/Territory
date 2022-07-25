@@ -1,8 +1,9 @@
 package com.cavetale.territory.generator;
 
+import com.cavetale.core.struct.Vec2i;
 import com.cavetale.territory.BiomeGroup;
 import com.cavetale.territory.struct.Territory;
-import com.cavetale.territory.struct.Vec2i;
+import com.cavetale.territory.util.Vectors;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -31,7 +32,7 @@ public final class GeneratorZone {
         List<Integer> chunkList = new ArrayList<>();
         for (Vec2i chunk : chunks) {
             chunkList.add(chunk.x);
-            chunkList.add(chunk.y);
+            chunkList.add(chunk.z);
         }
         return new Territory(id, level, getCenter(), biomeGroup.humanName, biomeGroup, chunkList);
     }
@@ -95,16 +96,16 @@ public final class GeneratorZone {
         Vec2i sample = chunks.iterator().next();
         int ax = sample.x;
         int bx = sample.x;
-        int ay = sample.y;
-        int by = sample.y;
+        int ay = sample.z;
+        int by = sample.z;
         for (Vec2i chunk : chunks) {
             if (chunk.x < ax) ax = chunk.x;
             if (chunk.x > bx) bx = chunk.x;
-            if (chunk.y < ay) ay = chunk.y;
-            if (chunk.y > by) by = chunk.y;
+            if (chunk.z < ay) ay = chunk.z;
+            if (chunk.z > by) by = chunk.z;
         }
         // Nearest of Median
-        center = new Vec2i((ax + bx) / 2, (ay + by) / 2).nearest(chunks);
+        center = Vectors.nearest(new Vec2i((ax + bx) / 2, (ay + by) / 2), chunks);
         return center;
     }
 
@@ -115,7 +116,7 @@ public final class GeneratorZone {
     public void computeNeighbors(Map<Vec2i, GeneratorZone> zones) {
         neighbors = new ArrayList<>();
         for (Vec2i vec : getBorderChunks()) {
-            for (Vec2i nbor : vec.getNeighbors()) {
+            for (Vec2i nbor : Vectors.neighbors(vec)) {
                 GeneratorZone zone = zones.get(nbor);
                 if (zone == null || zone == this || neighbors.contains(zone)) continue;
                 neighbors.add(zone);
