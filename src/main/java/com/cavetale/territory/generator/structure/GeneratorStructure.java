@@ -36,7 +36,7 @@ public interface GeneratorStructure {
                                  (base.getZ() - min.z) - (anchor.z - min.z));
     }
 
-    boolean canPlace(World targetWorld, Cuboid targetBoundingBox);
+    PlacementResult canPlace(World targetWorld, Cuboid targetBoundingBox);
 
     Structure place(World targetWorld, Cuboid worldBoundingBox, Vec2i chunkVector);
 }

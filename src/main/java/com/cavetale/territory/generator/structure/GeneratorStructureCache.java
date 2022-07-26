@@ -73,4 +73,28 @@ public final class GeneratorStructureCache {
             }
         }
     }
+
+    public List<GeneratorStructure> getStructures(GeneratorStructureType type) {
+        return switch (type) {
+        case SURFACE -> List.copyOf(surfaceStructures);
+        };
+    }
+
+    public GeneratorStructure getStructure(GeneratorStructureType type, String name) {
+        List<GeneratorStructure> list = getStructures(type);
+        for (GeneratorStructure it : list) {
+            if (name.equals(it.getName())) return it;
+        }
+        return null;
+    }
+
+    public List<String> allNames() {
+        List<String> result = new ArrayList<>();
+        for (GeneratorStructureType type : GeneratorStructureType.values()) {
+            for (GeneratorStructure it : getStructures(type)) {
+                result.add(it.getName());
+            }
+        }
+        return result;
+    }
 }

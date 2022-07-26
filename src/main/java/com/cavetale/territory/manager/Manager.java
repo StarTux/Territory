@@ -18,11 +18,9 @@ public final class Manager implements Listener {
     private final TerritoryPlugin plugin;
     private Map<String, TerritoryWorld> worlds = new HashMap<>();
     private Map<UUID, Session> sessions = new HashMap<>();
-    private TerritoryCommand territoryCommand;
 
     public Manager enable() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
-        territoryCommand = new TerritoryCommand(plugin).enable();
         for (String worldName : plugin.getConfig().getStringList("Manager.Worlds")) {
             World world = Bukkit.getWorld(worldName);
             if (world == null) {

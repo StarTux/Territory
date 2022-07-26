@@ -63,11 +63,19 @@ public final class SurfaceStructure implements GeneratorStructure {
                 territoryPlugin().getLogger().warning("[SurfaceStructure] [" + name + "] Unknown area name: " + area.name);
             }
         }
-        this.anchor = theAnchor != null
-            ? theAnchor
-            : new Vec3i((boundingBox.ax + boundingBox.bx) / 2,
-                        boundingBox.ay,
-                        (boundingBox.az + boundingBox.bz) / 2);
+        if (theAnchor != null) {
+            this.anchor = theAnchor;
+        } else {
+            Block block = world.getBlockAt((boundingBox.ax + boundingBox.bx) / 2,
+                                           boundingBox.ay,
+                                           (boundingBox.az + boundingBox.bz) / 2);
+            while (block.isEmpty() && block.getY() < boundingBox.by) {
+                block = block.getRelative(0, 1, 0);
+            }
+            this.anchor = Vec3i.of(block);
+        }
+        territoryPlugin().getLogger().info("[SurfaceStructure] " + name
+                                           + " anchor:" + anchor);
     }
 
     @Override
@@ -87,13 +95,17 @@ public final class SurfaceStructure implements GeneratorStructure {
         SURFACE_AIR_REPLACEABLES.add(Tag.LOGS.getValues());
         SURFACE_AIR_REPLACEABLES.add(Tag.LEAVES.getValues());
         SURFACE_AIR_REPLACEABLES.add(Tag.FLOWERS.getValues());
-        SURFACE_AIR_REPLACEABLES.add(Material.GRASS, Material.TALL_GRASS);
+        SURFACE_AIR_REPLACEABLES.add(Material.GRASS, Material.TALL_GRASS,
+                                     Material.POWDER_SNOW, Material.SNOW,
+                                     Material.MOSS_CARPET);
         SURFACE_AIR_REPLACEABLES.lock();
         SURFACE_GROUND_REPLACEABLES.add(Tag.DIRT.getValues());
         SURFACE_GROUND_REPLACEABLES.add(Tag.BASE_STONE_OVERWORLD.getValues());
         SURFACE_GROUND_REPLACEABLES.add(Tag.STONE_ORE_REPLACEABLES.getValues());
         SURFACE_GROUND_REPLACEABLES.add(MaterialTags.ORES.getValues());
-        SURFACE_GROUND_REPLACEABLES.add(Material.GRASS_BLOCK);
+        SURFACE_GROUND_REPLACEABLES.add(Material.GRASS_BLOCK, Material.MOSS_BLOCK,
+                                        Material.DIRT, Material.COARSE_DIRT, Material.PODZOL,
+                                        Material.STONE, Material.DIORITE, Material.GRANITE, Material.ANDESITE);
         SURFACE_GROUND_REPLACEABLES.lock();
     }
 
@@ -130,17 +142,21 @@ public final class SurfaceStructure implements GeneratorStructure {
      * be considered ground.
      */
     @Override
-    public boolean canPlace(World targetWorld, Cuboid targetBoundingBox) {
+    public PlacementResult canPlace(World targetWorld, Cuboid targetBoundingBox) {
         Vec3i targetOffset = targetBoundingBox.getMin();
         Vec3i originOffset = this.boundingBox.getMin();
         for (Cuboid airMarker : getMarkers("air")) {
             for (Vec3i targetPos : airMarker.shift(originOffset.negate()).shift(targetOffset).enumerate()) {
-                if (!isSurfaceAirReplaceable(targetPos.toBlock(targetWorld))) return false;
+                if (!isSurfaceAirReplaceable(targetPos.toBlock(targetWorld))) {
+                    return PlacementResult.Type.AIR.make(targetPos);
+                }
             }
         }
         for (Cuboid airMarker : getMarkers("ground")) {
             for (Vec3i targetPos : airMarker.shift(originOffset.negate()).shift(targetOffset).enumerate()) {
-                if (!isSurfaceGroundReplaceable(targetPos.toBlock(targetWorld))) return false;
+                if (!isSurfaceGroundReplaceable(targetPos.toBlock(targetWorld))) {
+                    return PlacementResult.Type.GROUND.make(targetPos);
+                }
             }
         }
         // None of the floor blocks may hover in midair!
@@ -148,18 +164,18 @@ public final class SurfaceStructure implements GeneratorStructure {
             for (int x = 0; x < boundingBox.getSizeX(); x += 1) {
                 Y: for (int y = 0; y < boundingBox.getSizeY(); y += 1) {
                     Vec3i originPos = originOffset.add(x, y, z);
-                    Vec3i targetPos = targetOffset.add(x, y, z);
                     BlockData originBlockData = originPos.toBlock(originWorld).getBlockData();
-                    if (!originBlockData.getMaterial().isAir()) {
-                        if (!isSurfaceGroundReplaceable(targetPos.toBlock(targetWorld))) {
-                            return false;
-                        }
+                    if (originPos.toBlock(originWorld).isEmpty()) continue Y;
+                    Vec3i targetPos = targetOffset.add(x, y, z);
+                    if (!isSurfaceGroundReplaceable(targetPos.toBlock(targetWorld))) {
+                        return PlacementResult.Type.AUTO.make(targetPos);
+                    } else {
                         break Y; // Match found!
                     }
                 }
             }
         }
-        return true;
+        return PlacementResult.Type.SUCCESS.make(0, 0, 0);
     }
 
     /**

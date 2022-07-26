@@ -192,7 +192,7 @@ public final class Generator implements Listener {
                 continue;
             }
             Cuboid boundingBox = surfaceStructure.createTargetBoundingBox(anchor);
-            if (!surfaceStructure.canPlace(world, boundingBox)) {
+            if (!surfaceStructure.canPlace(world, boundingBox).isSuccessful()) {
                 continue;
             }
             Structure structure = surfaceStructure.place(world, boundingBox, chunkVector);

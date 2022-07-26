@@ -10,6 +10,7 @@ public final class TerritoryPlugin extends JavaPlugin {
     private static TerritoryPlugin instance;
     private Generator generator;
     @Getter private Manager manager;
+    private TerritoryCommand territoryCommand = new TerritoryCommand(this);
 
     @Override
     public void onLoad() {
@@ -38,6 +39,7 @@ public final class TerritoryPlugin extends JavaPlugin {
         } else {
             getLogger().info("Manager disabled");
         }
+        territoryCommand.enable();
     }
 
     public static TerritoryPlugin territoryPlugin() {
