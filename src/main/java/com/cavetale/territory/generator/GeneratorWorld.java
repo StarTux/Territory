@@ -2,6 +2,7 @@ package com.cavetale.territory.generator;
 
 import com.cavetale.core.struct.Vec2i;
 import com.cavetale.core.util.Json;
+import com.cavetale.structure.cache.BiomeSection;
 import com.cavetale.territory.BiomeGroup;
 import com.cavetale.territory.manager.TerritoryWorld;
 import com.cavetale.territory.struct.Territory;
@@ -26,11 +27,15 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.block.Biome;
+import static com.cavetale.structure.StructurePlugin.structureCache;
 import static com.cavetale.territory.manager.TerritoryWorld.TERRITORY_FOLDER;
 
 /**
  * Represents a Minecraft world in a folder. With the following:
- * - A biomes.txt file
+ * - A structures.db
  *
  * An instance provides methods to parse these files and turn them
  * into an image file, produce cohesive territories (zones) for
@@ -54,11 +59,13 @@ public final class GeneratorWorld {
     int bz = 0;
     int width;
     int height;
-    List<GeneratorChunk> chunks;
+    // Find Zones
+    Map<Vec2i, BiomeGroup> chunks;
+    Set<Vec2i> findZonesPool;
     List<GeneratorZone> zones;
-    Map<Vec2i, GeneratorChunk> findZonesPool;
     Map<Vec2i, GeneratorZone> zoneMap;
     Map<BiomeGroup, Vec2i> essentialBiomes;
+    // Draw
     BufferedImage img;
     Graphics gfx;
     int generatorState;
@@ -66,20 +73,52 @@ public final class GeneratorWorld {
     // Used in late stage to generate structures
     protected TerritoryWorld territoryWorld;
 
+    public World getWorld() {
+        return Bukkit.getWorld(worldName);
+    }
+
+    private static BiomeGroup getMainBiomeGroup(List<BiomeSection> sections) {
+        Map<BiomeGroup, Integer> biomeGroups = new EnumMap<>(BiomeGroup.class);
+        BiomeGroup mainBiomeGroup = BiomeGroup.VOID;
+        int max = 0;
+        for (BiomeSection section : sections) {
+            for (Biome biome : section.getBiomes()) {
+                BiomeGroup biomeGroup = BiomeGroup.of(biome);
+                if (biomeGroup.category.handled) continue;
+                if (biomeGroup == BiomeGroup.RIVER) return biomeGroup;
+                int count = biomeGroups.getOrDefault(biomeGroup, 0) + 1;
+                biomeGroups.put(biomeGroup, count);
+                if (count > max) {
+                    max = count;
+                    mainBiomeGroup = biomeGroup;
+                }
+            }
+        }
+        return mainBiomeGroup;
+    }
+
     public void loadBiomes() {
-        try {
-            chunks = GeneratorChunk.fromBiomesFile(new File(folder, "biomes.txt"), logger);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
+        chunks = new HashMap<>();
+        Map<Vec2i, List<BiomeSection>> sectionsMap = new HashMap<>();
+        for (BiomeSection section : structureCache().biomeSections(getWorld())) {
+            sectionsMap.computeIfAbsent(section.getChunkVector(), v -> new ArrayList<>())
+                .add(section);
         }
-        for (GeneratorChunk chunk : chunks) {
-            if (chunk.vec.x < ax) ax = chunk.vec.x;
-            if (chunk.vec.x > bx) bx = chunk.vec.x;
-            if (chunk.vec.z < az) az = chunk.vec.z;
-            if (chunk.vec.z > bz) bz = chunk.vec.z;
-            width = bx - ax + 1;
-            height = bz - az + 1;
+        for (Map.Entry<Vec2i, List<BiomeSection>> entry : sectionsMap.entrySet()) {
+            Vec2i vec = entry.getKey();
+            BiomeGroup mainBiomeGroup = getMainBiomeGroup(entry.getValue());
+            chunks.put(vec, mainBiomeGroup);
         }
+        // Determine world dimensions.  Should we use the WorldBorder
+        // instead?
+        for (Vec2i vec : chunks.keySet()) {
+            if (vec.x < ax) ax = vec.x;
+            if (vec.x > bx) bx = vec.x;
+            if (vec.z < az) az = vec.z;
+            if (vec.z > bz) bz = vec.z;
+        }
+        width = bx - ax + 1;
+        height = bz - az + 1;
     }
 
     public void makeImage(int backgroundColor) {
@@ -93,14 +132,12 @@ public final class GeneratorWorld {
     }
 
     public void drawBiomes()  {
-        Set<String> unhandled = new HashSet<>();
-        for (GeneratorChunk chunk : chunks) {
-            int x = chunk.vec.x - ax;
-            int y = chunk.vec.z - az;
-            img.setRGB(x, y, chunk.biome.color.getRGB());
-        }
-        if (!unhandled.isEmpty()) {
-            logger.severe("[GeneratorWorld] Unhandled biomes: " + unhandled);
+        for (Map.Entry<Vec2i, BiomeGroup> entry : chunks.entrySet()) {
+            Vec2i vec = entry.getKey();
+            BiomeGroup biomeGroup = entry.getValue();
+            int x = vec.x - ax;
+            int y = vec.z - az;
+            img.setRGB(x, y, biomeGroup.color.getRGB());
         }
     }
 
@@ -170,7 +207,7 @@ public final class GeneratorWorld {
         ImageIO.write(img, "png", file);
     }
 
-    void print(Color color, String str, int x, int y) {
+    private void print(Color color, String str, int x, int y) {
         x -= ax;
         y -= az;
         gfx.setColor(Color.BLACK);
@@ -186,7 +223,7 @@ public final class GeneratorWorld {
         gfx.drawString(str, x, y);
     }
 
-    void rect(Color color, int x, int y, int w, int h) {
+    private void rect(Color color, int x, int y, int w, int h) {
         x -= ax;
         y -= az;
         gfx.setColor(Color.BLACK);
@@ -195,14 +232,14 @@ public final class GeneratorWorld {
         gfx.drawRect(x, y, w, h);
     }
 
-    void fillRect(Color color, int x, int y, int w, int h) {
+    private void fillRect(Color color, int x, int y, int w, int h) {
         x -= ax;
         y -= az;
         gfx.setColor(color);
         gfx.fillRect(x, y, w, h);
     }
 
-    void pixel(Color color, int x, int y) {
+    private void pixel(Color color, int x, int y) {
         if (x < ax || x > bx || y < az || y > bz) return;
         img.setRGB(x - ax, y - az, color.getRGB());
     }
@@ -218,41 +255,32 @@ public final class GeneratorWorld {
 
     public void prepareFindZones() {
         zones = new ArrayList<>();
-        findZonesPool = new HashMap<>();
+        findZonesPool = new HashSet<>(chunks.keySet());
         zoneMap = new HashMap<>();
-        for (GeneratorChunk generatorChunk : chunks) {
-            findZonesPool.put(generatorChunk.vec, generatorChunk);
-        }
     }
 
     public boolean findZonesStep() {
         if (findZonesPool.isEmpty()) return false;
-        Set<Vec2i> todo = new HashSet<>();
-        GeneratorChunk pivot = findZonesPool.values().iterator().next();
-        findZonesPool.remove(pivot.vec);
-        // if (pivot.biome == BiomeGroup.RIVER) return true;
-        // if (pivot.biome == BiomeGroup.OCEAN) return true;
-        GeneratorZone zone = new GeneratorZone(pivot.biome);
-        zones.add(zone);
-        zone.addChunk(pivot.vec);
-        todo.clear();
-        todo.add(pivot.vec);
-        while (!todo.isEmpty()) {
-            Vec2i vec = todo.iterator().next();
-            todo.remove(vec);
+        Vec2i pivotVec = findZonesPool.iterator().next();
+        findZonesPool.remove(pivotVec);
+        BiomeGroup pivotBiomeGroup = chunks.get(pivotVec);
+        List<Vec2i> zoneChunks = new ArrayList<>();
+        zoneChunks.add(pivotVec);
+        Set<Vec2i> done = new HashSet<>();
+        for (int i = 0; i < zoneChunks.size(); i += 1) {
+            Vec2i vec = zoneChunks.get(i);
             for (Vec2i nbor : Vectors.neighbors(vec)) {
-                if (!findZonesPool.containsKey(nbor)) continue;
-                if (todo.contains(nbor)) continue;
-                if (zone.containsChunk(nbor)) continue;
-                GeneratorChunk nborChunk = findZonesPool.get(nbor);
-                nbor = nborChunk.vec;
-                if (nborChunk.biome != zone.biomeGroup) continue;
-                findZonesPool.remove(nbor);
-                todo.add(nbor);
-                zone.addChunk(nbor);
+                BiomeGroup nborBiomeGroup = chunks.get(nbor);
+                if (nborBiomeGroup != null && nborBiomeGroup == pivotBiomeGroup && !done.contains(nbor)) {
+                    findZonesPool.remove(nbor);
+                    done.add(nbor);
+                    zoneChunks.add(nbor);
+                }
             }
         }
-        zone.putIn(zoneMap);
+        GeneratorZone generatorZone = new GeneratorZone(pivotBiomeGroup, zoneChunks);
+        generatorZone.putIn(zoneMap);
+        zones.add(generatorZone);
         return true;
     }
 
@@ -343,7 +371,7 @@ public final class GeneratorWorld {
         Vec2i start = dim.x >= dim.z
             ? Vectors.minX(zone.chunks)
             : Vectors.minZ(zone.chunks);
-        GeneratorZone newZone = new GeneratorZone(zone.biomeGroup);
+        GeneratorZone newZone = new GeneratorZone(zone.biomeGroup, List.of());
         zones.add(newZone);
         List<Vec2i> todo = new ArrayList<>();
         todo.add(start);
@@ -383,7 +411,7 @@ public final class GeneratorWorld {
         zones.remove(zone);
         zone.removeFrom(zoneMap);
         for (Set<Vec2i> set : list) {
-            GeneratorZone newZone = new GeneratorZone(zone.biomeGroup);
+            GeneratorZone newZone = new GeneratorZone(zone.biomeGroup, List.of());
             newZone.addAllChunks(set);
             zones.add(newZone);
             newZone.essential = zone.essential;

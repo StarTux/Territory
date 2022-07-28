@@ -6,7 +6,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.block.Biome;
 import static com.cavetale.core.util.CamelCase.toCamelCase;
 
 public enum BiomeGroup {
@@ -42,19 +44,23 @@ public enum BiomeGroup {
      * The category tells the surface generator how to treat the
      * place.
      */
-    @RequiredArgsConstructor
+    @Getter @RequiredArgsConstructor
     public enum Category {
-        SURFACE(true),
-        AQUATIC(true),
-        NETHER(false),
-        END(false),
+        SURFACE(true, true),
+        AQUATIC(true, true),
+        NETHER(false, false),
+        END(false, false),
         /**
          * Invalid biomes should never or rarely occur in the world
          * because they are under ground or merged away during
          * PostWorld.
          */
-        INVALID(false);
+        INVALID(false, false);
 
+        /**
+         * Not handled biomes are skipped by the generator.
+         */
+        public final boolean handled;
         /**
          * For simplicity's sake, the BiomeGroup's essential quality
          * will be dictated by the Category.
@@ -85,6 +91,10 @@ public enum BiomeGroup {
             biomeGroup.names.add(biomeGroup.name());
             KEYS.put(biomeGroup.key, biomeGroup);
         }
+    }
+
+    public static BiomeGroup of(Biome biome) {
+        return of(biome.name());
     }
 
     public static BiomeGroup of(String name) {

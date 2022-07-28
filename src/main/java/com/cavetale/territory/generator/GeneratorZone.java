@@ -12,21 +12,25 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Zone abstraction for the Generator.
  * Zones are used to eventually generate Territories.
  */
-@RequiredArgsConstructor @Getter
+@Getter
 public final class GeneratorZone {
     protected final BiomeGroup biomeGroup;
-    protected final Set<Vec2i> chunks = new HashSet<>();
+    protected final Set<Vec2i> chunks;
     private Vec2i center;
     protected boolean essential = false; // deprecated?
     protected int level;
     protected List<GeneratorZone> neighbors;
     protected int id;
+
+    public GeneratorZone(final BiomeGroup biomeGroup, final Collection<Vec2i> chunks) {
+        this.biomeGroup = biomeGroup;
+        this.chunks = new HashSet<>(chunks);
+    }
 
     public Territory createTerritory() {
         List<Integer> chunkList = new ArrayList<>();
