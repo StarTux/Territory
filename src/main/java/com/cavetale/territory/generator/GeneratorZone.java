@@ -21,7 +21,7 @@ import lombok.Getter;
 public final class GeneratorZone {
     protected final BiomeGroup biomeGroup;
     protected final Set<Vec2i> chunks;
-    private Vec2i center;
+    protected Vec2i center;
     protected boolean essential = false; // deprecated?
     protected int level;
     protected List<GeneratorZone> neighbors;

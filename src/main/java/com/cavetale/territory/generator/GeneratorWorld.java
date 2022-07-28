@@ -14,7 +14,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -84,7 +83,7 @@ public final class GeneratorWorld {
         for (BiomeSection section : sections) {
             for (Biome biome : section.getBiomes()) {
                 BiomeGroup biomeGroup = BiomeGroup.of(biome);
-                if (biomeGroup.category.handled) continue;
+                if (!biomeGroup.category.handled) continue;
                 if (biomeGroup == BiomeGroup.RIVER) return biomeGroup;
                 int count = biomeGroups.getOrDefault(biomeGroup, 0) + 1;
                 biomeGroups.put(biomeGroup, count);
@@ -260,7 +259,10 @@ public final class GeneratorWorld {
     }
 
     public boolean findZonesStep() {
-        if (findZonesPool.isEmpty()) return false;
+        if (findZonesPool.isEmpty()) {
+            logger.info("FindZones: " + zones.size() + " Zones");
+            return false;
+        }
         Vec2i pivotVec = findZonesPool.iterator().next();
         findZonesPool.remove(pivotVec);
         BiomeGroup pivotBiomeGroup = chunks.get(pivotVec);
@@ -427,21 +429,6 @@ public final class GeneratorWorld {
      */
     public void findEssentialBiomes(int preferredSize) {
         Map<BiomeGroup, GeneratorZone> biomeZoneMap = new EnumMap<>(BiomeGroup.class);
-        List<BiomeGroup> essentialGroups = Arrays
-            .asList(BiomeGroup.FOREST,
-                    BiomeGroup.MOUNTAIN,
-                    BiomeGroup.DARK_FOREST,
-                    BiomeGroup.SWAMP,
-                    BiomeGroup.TAIGA,
-                    BiomeGroup.DESERT,
-                    BiomeGroup.JUNGLE,
-                    BiomeGroup.BAMBOO,
-                    BiomeGroup.SAVANNA,
-                    BiomeGroup.SNOWY,
-                    BiomeGroup.FROZEN,
-                    BiomeGroup.OCEAN,
-                    BiomeGroup.WARM_OCEAN,
-                    BiomeGroup.MUSHROOM);
         for (GeneratorZone zone : zones) {
             int absCoord = Vectors.minAbsCoord(zone.getCenter());
             GeneratorZone old = biomeZoneMap.get(zone.biomeGroup);
@@ -452,7 +439,8 @@ public final class GeneratorWorld {
             }
         }
         essentialBiomes = new EnumMap<>(BiomeGroup.class);
-        for (BiomeGroup biomeGroup : essentialGroups) {
+        for (BiomeGroup biomeGroup : BiomeGroup.values()) {
+            if (!biomeGroup.essential) continue;
             GeneratorZone zone = biomeZoneMap.get(biomeGroup);
             if (zone != null) {
                 zone.essential = true;

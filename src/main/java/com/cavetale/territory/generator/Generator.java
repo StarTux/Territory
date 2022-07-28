@@ -65,6 +65,7 @@ public final class Generator implements Listener {
     private GeneratorStructureCache getStructureCache() {
         if (generatorStructureCache == null) {
             plugin.getLogger().info("Loading Structure Cache");
+            generatorStructureCache = new GeneratorStructureCache();
             for (String worldName : structureWorlds) {
                 World world = Bukkit.getWorld(worldName);
                 if (world == null) {
