@@ -182,7 +182,7 @@ public final class Generator implements Listener {
         World world = chunk.getWorld();
         Cuboid chunkZone = new Cuboid(baseVec.x, 48, baseVec.z,
                                       baseVec.x + 15, world.getMaxHeight(), baseVec.z + 15);
-        Cuboid exclusionZone = chunkZone.outset(64, 0, 64);
+        Cuboid exclusionZone = chunkZone.outset(128, 0, 128);
         var chunkVector = Vec2i.of(chunk);
         if (!structureCache().within(world.getName(), exclusionZone).isEmpty()) {
             return false;

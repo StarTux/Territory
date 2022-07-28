@@ -83,8 +83,8 @@ public final class GeneratorWorld {
         for (BiomeSection section : sections) {
             for (Biome biome : section.getBiomes()) {
                 BiomeGroup biomeGroup = BiomeGroup.of(biome);
-                if (!biomeGroup.category.handled) continue;
                 if (biomeGroup == BiomeGroup.RIVER) return biomeGroup;
+                if (!biomeGroup.category.handled) continue;
                 int count = biomeGroups.getOrDefault(biomeGroup, 0) + 1;
                 biomeGroups.put(biomeGroup, count);
                 if (count > max) {
