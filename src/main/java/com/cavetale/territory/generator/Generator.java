@@ -40,7 +40,7 @@ public final class Generator implements Listener {
     private final TerritoryPlugin plugin;
     private Map<String, GeneratorWorld> worlds = new HashMap<>();
     final List<Vec2i> inChunkCoords = new ArrayList<>(256); // [0,15]
-    private GeneratorStructureCache generatorStructureCache = new GeneratorStructureCache();
+    private GeneratorStructureCache generatorStructureCache;
     private final List<String> structureWorlds = List.of("structures");
 
     public Generator enable() {
@@ -59,16 +59,22 @@ public final class Generator implements Listener {
             worlds.put(worldName, new GeneratorWorld(worldName, world.getWorldFolder(), plugin.getLogger()));
         }
         // Load structure worlds
-        plugin.getLogger().info("Loading Structure Cache");
-        for (String worldName : structureWorlds) {
-            World world = Bukkit.getWorld(worldName);
-            if (world == null) {
-                throw new IllegalStateException("Structure world not found: " + worldName);
-            }
-            generatorStructureCache.load(world);
-        }
-        generatorStructureCache.prepare();
         return this;
+    }
+
+    private GeneratorStructureCache getStructureCache() {
+        if (generatorStructureCache == null) {
+            plugin.getLogger().info("Loading Structure Cache");
+            for (String worldName : structureWorlds) {
+                World world = Bukkit.getWorld(worldName);
+                if (world == null) {
+                    throw new IllegalStateException("Structure world not found: " + worldName);
+                }
+                generatorStructureCache.load(world);
+            }
+            generatorStructureCache.prepare();
+        }
+        return generatorStructureCache;
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -184,7 +190,7 @@ public final class Generator implements Listener {
         Collections.shuffle(inChunkCoords, generatorWorld.random);
         final Iterator<Vec2i> inChunkIter = inChunkCoords.iterator();
         // Find center
-        SurfaceStructure surfaceStructure = generatorStructureCache.nextSurfaceStructure();
+        SurfaceStructure surfaceStructure = getStructureCache().nextSurfaceStructure();
         while (inChunkIter.hasNext()) {
             final Vec2i worldXZ = baseVec.add(inChunkIter.next());
             Block anchor = world.getHighestBlockAt(worldXZ.x, worldXZ.z, HeightMap.MOTION_BLOCKING_NO_LEAVES);
