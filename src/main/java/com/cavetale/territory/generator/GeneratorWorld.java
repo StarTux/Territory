@@ -464,11 +464,10 @@ public final class GeneratorWorld {
         int distance = 0;
         while (scaledZones.size() < zones.size()) {
             distance += 1;
-            maxLevel = distance / 2;
             for (GeneratorZone scaled : List.copyOf(scaledZones)) {
                 for (GeneratorZone newZone : scaled.neighbors) {
                     if (scaledZones.contains(newZone)) continue;
-                    newZone.level = maxLevel;
+                    newZone.level = distance;
                     scaledZones.add(newZone);
                 }
             }

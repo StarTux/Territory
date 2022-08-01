@@ -194,6 +194,13 @@ public final class SurfaceStructure implements GeneratorStructure {
                     BlockData blockData = originPos.toBlock(originWorld).getBlockData();
                     if (!pillarStarted && blockData.getMaterial().isAir()) continue;
                     pillarStarted = true;
+                    // Clear the pillar
+                    for (int targetY = y; targetY < targetWorld.getHighestBlockYAt(x, z); targetY += 1) {
+                        Block airBlock = targetWorld.getBlockAt(targetPos.x, targetY, targetPos.z);
+                        if (!airBlock.isEmpty() && isSurfaceAirReplaceable(airBlock)) {
+                            airBlock.setType(Material.AIR, false);
+                        }
+                    }
                     targetPos.toBlock(targetWorld).setBlockData(blockData, false);
                 }
             }
