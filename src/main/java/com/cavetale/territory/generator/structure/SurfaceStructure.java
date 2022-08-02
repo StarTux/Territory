@@ -39,6 +39,7 @@ public final class SurfaceStructure implements GeneratorStructure {
     private final Vec3i anchor;
     private final Cuboid boundingBox;
     private final Map<String, List<Cuboid>> markers = new HashMap<>();
+    private final GroundType groundType;
 
     protected SurfaceStructure(final World world, final String name, final List<Area> areas) {
         this.originWorld = world;
@@ -74,8 +75,10 @@ public final class SurfaceStructure implements GeneratorStructure {
             }
             this.anchor = Vec3i.of(block);
         }
+        this.groundType = GroundType.of(anchor.toBlock(world));
         territoryPlugin().getLogger().info("[SurfaceStructure] " + name
-                                           + " anchor:" + anchor);
+                                           + " anchor:" + anchor
+                                           + " ground:" + groundType);
     }
 
     @Override
@@ -124,11 +127,17 @@ public final class SurfaceStructure implements GeneratorStructure {
         return SURFACE_GROUND_REPLACEABLES.isTagged(mat);
     }
 
+    @Override
+    public boolean canPlace(Block anchorBlock) {
+        return groundType.matches(anchorBlock);
+    }
+
     /**
      * Place this structure in the target world.
      * This is called after:
      * - No structure, natural or custom, is found nearby
      * - The highest block has been found
+     * - canPlace(Block) has been confirmed
      * - The bounding box has been created based on said block:
      *   Via this#createWorldBoundingBox
      *

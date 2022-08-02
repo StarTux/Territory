@@ -71,6 +71,7 @@ public final class TerritoryCommand extends AbstractCommand<TerritoryPlugin> {
             throw new CommandWarn("Structure lNot found: " + type + "/" + name);
         }
         Block base = cuboid.getMin().toBlock(player.getWorld());
+        boolean baseBlockAllowed = generatorStructure.canPlace(base);
         Cuboid boundingBox = generatorStructure.createTargetBoundingBox(base);
         PlacementResult result = generatorStructure.canPlace(player.getWorld(), boundingBox);
         String blockData = result.isSuccessful()
@@ -81,6 +82,7 @@ public final class TerritoryCommand extends AbstractCommand<TerritoryPlugin> {
                                 text("/" + result.getVector(), YELLOW),
                                 text("/" + blockData, YELLOW),
                                 text(" base:" + cuboid.getMin(), GRAY),
+                                text("->" + baseBlockAllowed, (baseBlockAllowed ? GREEN : RED)),
                                 text(" bb:" + boundingBox, GRAY)));
         return true;
     }

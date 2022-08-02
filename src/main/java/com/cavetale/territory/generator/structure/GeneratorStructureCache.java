@@ -33,8 +33,9 @@ public final class GeneratorStructureCache {
             Cuboid cuboid = structure.getBoundingBox().blockToChunk();
             for (int z = cuboid.az; z <= cuboid.bz; z += 1) {
                 for (int x = cuboid.ax; x <= cuboid.bx; x += 1) {
-                    structure.getOriginWorld()
-                        .getChunkAtAsync(x, z, (Consumer<Chunk>) chunk -> chunk.addPluginChunkTicket(territoryPlugin()));
+                    structure.getOriginWorld().getChunkAtAsync(x, z, (Consumer<Chunk>) chunk -> {
+                            chunk.addPluginChunkTicket(territoryPlugin());
+                        });
                 }
             }
         }

@@ -5,8 +5,9 @@ import com.cavetale.core.struct.Vec2i;
 import com.cavetale.structure.cache.Structure;
 import com.cavetale.territory.BiomeGroup;
 import com.cavetale.territory.TerritoryPlugin;
+import com.cavetale.territory.generator.structure.GeneratorStructure;
 import com.cavetale.territory.generator.structure.GeneratorStructureCache;
-import com.cavetale.territory.generator.structure.SurfaceStructure;
+import com.cavetale.territory.generator.structure.GeneratorStructureType;
 import com.cavetale.territory.struct.Territory;
 import com.winthier.decorator.DecoratorEvent;
 import com.winthier.decorator.DecoratorPostWorldEvent;
@@ -191,24 +192,29 @@ public final class Generator implements Listener {
         Collections.shuffle(inChunkCoords, generatorWorld.random);
         final Iterator<Vec2i> inChunkIter = inChunkCoords.iterator();
         // Find center
-        SurfaceStructure surfaceStructure = getStructureCache().nextSurfaceStructure();
         while (inChunkIter.hasNext()) {
             final Vec2i worldXZ = baseVec.add(inChunkIter.next());
             Block anchor = world.getHighestBlockAt(worldXZ.x, worldXZ.z, HeightMap.MOTION_BLOCKING_NO_LEAVES);
             if (anchor.getY() < 63) {
                 continue;
             }
-            Cuboid boundingBox = surfaceStructure.createTargetBoundingBox(anchor);
-            if (!surfaceStructure.canPlace(world, boundingBox).isSuccessful()) {
-                continue;
+            List<GeneratorStructure> surfaceStructureList = new ArrayList<>(getStructureCache().getStructures(GeneratorStructureType.SURFACE));
+            surfaceStructureList.removeIf(s -> !s.canPlace(anchor));
+            if (surfaceStructureList.isEmpty()) continue;
+            Collections.shuffle(surfaceStructureList, generatorWorld.random);
+            for (GeneratorStructure surfaceStructure : surfaceStructureList) {
+                Cuboid boundingBox = surfaceStructure.createTargetBoundingBox(anchor);
+                if (!surfaceStructure.canPlace(world, boundingBox).isSuccessful()) {
+                    continue;
+                }
+                Structure structure = surfaceStructure.place(world, boundingBox, chunkVector);
+                if (structure == null) {
+                    continue;
+                }
+                plugin.getLogger().info(chunkVector + ": Placed structure: " + structure);
+                structureCache().addStructure(structure);
+                return true;
             }
-            Structure structure = surfaceStructure.place(world, boundingBox, chunkVector);
-            if (structure == null) {
-                continue;
-            }
-            plugin.getLogger().info(chunkVector + ": Placed structure: " + structure);
-            structureCache().addStructure(structure);
-            return true;
         }
         return false;
     }
