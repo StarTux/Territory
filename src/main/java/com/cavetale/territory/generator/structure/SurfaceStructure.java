@@ -6,13 +6,15 @@ import com.cavetale.core.struct.Vec2i;
 import com.cavetale.core.struct.Vec3i;
 import com.cavetale.core.util.Json;
 import com.cavetale.structure.cache.Structure;
-import com.cavetale.territory.struct.TerritoryStructure;
+import com.cavetale.territory.struct.SurfaceStructureTag;
 import com.destroystokyo.paper.MaterialSetTag;
 import com.destroystokyo.paper.MaterialTags;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -40,11 +42,15 @@ public final class SurfaceStructure implements GeneratorStructure {
     private final Cuboid boundingBox;
     private final Map<String, List<Cuboid>> markers = new HashMap<>();
     private final GroundType groundType;
+    private final Set<Vec3i> mobVectors = new HashSet<>();
+    private final Set<Vec3i> flyingMobVectors = new HashSet<>();
+    private final Vec3i bossChestVector;
 
     protected SurfaceStructure(final World world, final String name, final List<Area> areas) {
         this.originWorld = world;
         this.name = name;
         Vec3i theAnchor = null;
+        Vec3i theBossChestVector = null;
         this.boundingBox = areas.get(0).toCuboid();
         for (Area area : areas.subList(1, areas.size())) {
             if (area.name == null) {
@@ -59,6 +65,17 @@ public final class SurfaceStructure implements GeneratorStructure {
                 break;
             case "ground":
                 markers.computeIfAbsent("ground", n -> new ArrayList<>()).add(area.toCuboid());
+                break;
+            case "mob":
+            case "mobs":
+                mobVectors.addAll(area.enumerate());
+                break;
+            case "flyingmob":
+            case "flyingmobs":
+                flyingMobVectors.addAll(area.enumerate());
+                break;
+            case "bosschest":
+                theBossChestVector = area.getMin();
                 break;
             default:
                 territoryPlugin().getLogger().warning("[SurfaceStructure] [" + name + "] Unknown area name: " + area.name);
@@ -76,9 +93,13 @@ public final class SurfaceStructure implements GeneratorStructure {
             this.anchor = Vec3i.of(block);
         }
         this.groundType = GroundType.of(anchor.toBlock(world));
+        this.bossChestVector = theBossChestVector != null
+            ? theBossChestVector
+            : anchor.add(0, 1, 0);
         territoryPlugin().getLogger().info("[SurfaceStructure] " + name
                                            + " anchor:" + anchor
-                                           + " ground:" + groundType);
+                                           + " ground:" + groundType
+                                           + " mobs:" + mobVectors.size() + "," + flyingMobVectors.size());
     }
 
     @Override
@@ -214,12 +235,19 @@ public final class SurfaceStructure implements GeneratorStructure {
                 }
             }
         }
-        TerritoryStructure territoryStructure = new TerritoryStructure();
-        territoryStructure.setName(name);
+        SurfaceStructureTag tag = new SurfaceStructureTag(name);
+        final Vec3i translationVector = targetOffset.subtract(originOffset);
+        for (Vec3i vec : mobVectors) {
+            tag.getMobs().add(vec.add(translationVector));
+        }
+        for (Vec3i vec : flyingMobVectors) {
+            tag.getFlyingMobs().add(vec.add(translationVector));
+        }
+        tag.setBossChest(bossChestVector.add(translationVector));
         return new Structure(targetWorld.getName(),
                              SURFACE_STRUCTURE_KEY,
                              chunkVector,
                              targetBoundingBox,
-                             Json.serialize(territoryStructure));
+                             Json.serialize(tag));
     }
 }
