@@ -9,6 +9,7 @@ import com.cavetale.territory.generator.structure.GeneratorStructureCache;
 import com.cavetale.territory.generator.structure.GeneratorStructureType;
 import com.cavetale.territory.generator.structure.PlacementResult;
 import com.cavetale.territory.manager.Manager;
+import com.cavetale.territory.manager.ManagerWorld;
 import com.cavetale.territory.manager.TerritoryWorld;
 import com.cavetale.territory.struct.Territory;
 import java.util.List;
@@ -45,9 +46,10 @@ public final class TerritoryCommand extends AbstractCommand<TerritoryPlugin> {
         if (manager == null) {
             throw new CommandWarn("Manager disabled! See config.yml");
         }
-        TerritoryWorld territoryWorld = manager.getWorld(player.getWorld().getName());
-        if (territoryWorld == null) throw new CommandWarn("Not a territory world: " + player.getWorld().getName());
-        player.sendMessage(text("World " + territoryWorld.worldName
+        ManagerWorld managerWorld = manager.getWorld(player.getWorld().getName());
+        if (managerWorld == null) throw new CommandWarn("Not a managed world: " + player.getWorld().getName());
+        TerritoryWorld territoryWorld = managerWorld.getTerritoryWorld();
+        player.sendMessage(text("World " + managerWorld.getWorldName()
                                 + ": " + territoryWorld.getTerritories().size() + " territories", AQUA));
         Territory territory = territoryWorld.at(player.getLocation());
         player.sendMessage(join(noSeparators(),

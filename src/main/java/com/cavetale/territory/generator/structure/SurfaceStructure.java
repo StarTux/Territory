@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
+import org.bukkit.HeightMap;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Tag;
@@ -35,7 +36,7 @@ import static com.cavetale.territory.TerritoryPlugin.territoryPlugin;
  */
 @Getter
 public final class SurfaceStructure implements GeneratorStructure {
-    public static final NamespacedKey SURFACE_STRUCTURE_KEY = NamespacedKey.fromString("territory:surface_structure");
+    private final GeneratorStructureType type;
     private final World originWorld;
     private final String name;
     private final Vec3i anchor;
@@ -46,7 +47,9 @@ public final class SurfaceStructure implements GeneratorStructure {
     private final Set<Vec3i> flyingMobVectors = new HashSet<>();
     private final Vec3i bossChestVector;
 
-    protected SurfaceStructure(final World world, final String name, final List<Area> areas) {
+    protected SurfaceStructure(final GeneratorStructureType type,
+                               final World world, final String name, final List<Area> areas) {
+        this.type = type;
         this.originWorld = world;
         this.name = name;
         Vec3i theAnchor = null;
@@ -223,12 +226,14 @@ public final class SurfaceStructure implements GeneratorStructure {
                     Vec3i targetPos = targetOffset.add(x, y, z);
                     BlockData blockData = originPos.toBlock(originWorld).getBlockData();
                     if (!pillarStarted && blockData.getMaterial().isAir()) continue;
-                    pillarStarted = true;
-                    // Clear the pillar
-                    for (int targetY = y; targetY < targetWorld.getHighestBlockYAt(x, z); targetY += 1) {
-                        Block airBlock = targetWorld.getBlockAt(targetPos.x, targetY, targetPos.z);
-                        if (!airBlock.isEmpty() && isSurfaceAirReplaceable(airBlock)) {
-                            airBlock.setType(Material.AIR, false);
+                    if (!pillarStarted) {
+                        pillarStarted = true;
+                        // Clear the pillar
+                        for (int targetY = targetPos.y; targetY < targetWorld.getHighestBlockYAt(x, z, HeightMap.WORLD_SURFACE); targetY += 1) {
+                            Block airBlock = targetWorld.getBlockAt(targetPos.x, targetY, targetPos.z);
+                            if (!airBlock.isEmpty() && isSurfaceAirReplaceable(airBlock)) {
+                                airBlock.setType(Material.AIR, false);
+                            }
                         }
                     }
                     targetPos.toBlock(targetWorld).setBlockData(blockData, false);
@@ -245,7 +250,7 @@ public final class SurfaceStructure implements GeneratorStructure {
         }
         tag.setBossChest(bossChestVector.add(translationVector));
         return new Structure(targetWorld.getName(),
-                             SURFACE_STRUCTURE_KEY,
+                             type.key,
                              chunkVector,
                              targetBoundingBox,
                              Json.serialize(tag));

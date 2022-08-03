@@ -7,7 +7,7 @@ import com.cavetale.territory.BiomeGroup;
 import com.cavetale.territory.TerritoryPlugin;
 import com.cavetale.territory.generator.structure.GeneratorStructure;
 import com.cavetale.territory.generator.structure.GeneratorStructureCache;
-import com.cavetale.territory.generator.structure.GeneratorStructureType;
+import com.cavetale.territory.generator.structure.GeneratorStructureCategory;
 import com.cavetale.territory.struct.Territory;
 import com.winthier.decorator.DecoratorEvent;
 import com.winthier.decorator.DecoratorPostWorldEvent;
@@ -198,7 +198,7 @@ public final class Generator implements Listener {
             if (anchor.getY() < 63) {
                 continue;
             }
-            List<GeneratorStructure> surfaceStructureList = new ArrayList<>(getStructureCache().getStructures(GeneratorStructureType.SURFACE));
+            List<GeneratorStructure> surfaceStructureList = new ArrayList<>(getStructureCache().getStructures(GeneratorStructureCategory.SURFACE));
             surfaceStructureList.removeIf(s -> !s.canPlace(anchor));
             if (surfaceStructureList.isEmpty()) continue;
             Collections.shuffle(surfaceStructureList, generatorWorld.random);

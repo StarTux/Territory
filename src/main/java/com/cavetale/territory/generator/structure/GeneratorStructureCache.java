@@ -5,6 +5,7 @@ import com.cavetale.area.struct.AreasFile;
 import com.cavetale.core.struct.Cuboid;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -17,68 +18,69 @@ import static com.cavetale.territory.TerritoryPlugin.territoryPlugin;
  * plugin.
  */
 public final class GeneratorStructureCache {
-    private final List<SurfaceStructure> surfaceStructures = new ArrayList<>();
-    private int surfaceStructureIndex = 0;
+    private final Map<GeneratorStructureType, List<GeneratorStructure>> cache = new EnumMap<>(GeneratorStructureType.class);
 
     public void load(World world) {
-        loadSurfaceStructures(world);
+        for (GeneratorStructureType type : GeneratorStructureType.values()) {
+            loadStructures(world, type);
+        }
     }
 
     public void prepare() {
-        if (surfaceStructures.isEmpty()) {
-            throw new IllegalStateException("surfaceStructures is emtpy");
-        }
-        territoryPlugin().getLogger().info(surfaceStructures.size() + " surface structures loaded");
-        for (GeneratorStructure structure : surfaceStructures) {
-            Cuboid cuboid = structure.getBoundingBox().blockToChunk();
-            for (int z = cuboid.az; z <= cuboid.bz; z += 1) {
-                for (int x = cuboid.ax; x <= cuboid.bx; x += 1) {
-                    structure.getOriginWorld().getChunkAtAsync(x, z, (Consumer<Chunk>) chunk -> {
-                            chunk.addPluginChunkTicket(territoryPlugin());
-                        });
+        for (GeneratorStructureType type : GeneratorStructureType.values()) {
+            if (cache.get(type) == null || cache.get(type).isEmpty()) {
+                throw new IllegalStateException(type + " cache is emtpy");
+            }
+            territoryPlugin().getLogger().info(cache.get(type).size() + " " + type + " structures loaded");
+            for (GeneratorStructure structure : cache.get(type)) {
+                Cuboid cuboid = structure.getBoundingBox().blockToChunk();
+                for (int z = cuboid.az; z <= cuboid.bz; z += 1) {
+                    for (int x = cuboid.ax; x <= cuboid.bx; x += 1) {
+                        structure.getOriginWorld().getChunkAtAsync(x, z, (Consumer<Chunk>) chunk -> {
+                                chunk.addPluginChunkTicket(territoryPlugin());
+                            });
+                    }
                 }
             }
+            Collections.shuffle(cache.get(type));
         }
-        Collections.shuffle(surfaceStructures);
     }
 
     public void unload(World world) {
         world.removePluginChunkTickets(territoryPlugin());
     }
 
-    public SurfaceStructure nextSurfaceStructure() {
-        SurfaceStructure result = surfaceStructures.get(surfaceStructureIndex);
-        surfaceStructureIndex += 1;
-        if (surfaceStructureIndex >= surfaceStructures.size()) {
-            surfaceStructureIndex = 0;
-        }
-        return result;
-    }
-
-    private void loadSurfaceStructures(World world) {
-        final String name = "SurfaceStructures";
-        AreasFile areasFile = AreasFile.load(world, name);
+    private void loadStructures(World world, GeneratorStructureType type) {
+        AreasFile areasFile = AreasFile.load(world, type.areasFileName);
         if (areasFile == null) {
             territoryPlugin().getLogger().warning("[GeneratorStructureCache]"
                                                   + " [" + world.getName() + "]"
-                                                  + " Nothing found: " + name);
+                                                  + " Nothing found: " + type);
             return;
         }
         for (Map.Entry<String, List<Area>> entry : areasFile.areas.entrySet()) {
-            SurfaceStructure surfaceStructure = new SurfaceStructure(world, entry.getKey(), entry.getValue());
-            if (!surfaceStructure.isValid()) {
-                territoryPlugin().getLogger().severe("[GeneratorStructureCache] not valid: " + surfaceStructure);
+            GeneratorStructure generatorStructure = type.createGeneratorStructure(world, entry.getKey(), entry.getValue());
+            if (!generatorStructure.isValid()) {
+                territoryPlugin().getLogger().severe("[GeneratorStructureCache] [" + type + "] not valid: " + generatorStructure);
                 continue;
             } else {
-                surfaceStructures.add(surfaceStructure);
+                cache.computeIfAbsent(type, t -> new ArrayList<>()).add(generatorStructure);
             }
         }
     }
 
     public List<GeneratorStructure> getStructures(GeneratorStructureType type) {
-        return switch (type) {
-        case SURFACE -> List.copyOf(surfaceStructures);
-        };
+        return cache.get(type);
+    }
+
+    public List<GeneratorStructure> getStructures(GeneratorStructureCategory category) {
+        List<GeneratorStructure> result = new ArrayList<>();
+        for (GeneratorStructureType type : GeneratorStructureType.values()) {
+            if (category == type.category) {
+                result.addAll(cache.get(type));
+            }
+        }
+        return result;
     }
 
     public GeneratorStructure getStructure(GeneratorStructureType type, String name) {
