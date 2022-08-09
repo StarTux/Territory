@@ -6,7 +6,6 @@ import com.cavetale.core.command.CommandWarn;
 import com.cavetale.core.struct.Cuboid;
 import com.cavetale.territory.generator.structure.GeneratorStructure;
 import com.cavetale.territory.generator.structure.GeneratorStructureCache;
-import com.cavetale.territory.generator.structure.GeneratorStructureType;
 import com.cavetale.territory.generator.structure.PlacementResult;
 import com.cavetale.territory.manager.Manager;
 import com.cavetale.territory.manager.ManagerWorld;
@@ -35,7 +34,7 @@ public final class TerritoryCommand extends AbstractCommand<TerritoryPlugin> {
             .description("Print info about structure in location")
             .playerCaller(this::here);
         rootNode.addChild("canplace").arguments("<type> <name>")
-            .completers(CommandArgCompleter.enumLowerList(GeneratorStructureType.class),
+            .completers(CommandArgCompleter.enumLowerList(TerritoryStructureType.class),
                         CommandArgCompleter.supplyList(() -> getStructureCache().allNames()))
             .description("Test if a structure can be placed")
             .playerCaller(this::canPlace);
@@ -66,7 +65,7 @@ public final class TerritoryCommand extends AbstractCommand<TerritoryPlugin> {
     private boolean canPlace(Player player, String[] args) {
         if (args.length != 2) return false;
         Cuboid cuboid = Cuboid.requireSelectionOf(player);
-        GeneratorStructureType type = CommandArgCompleter.requireEnum(GeneratorStructureType.class, args[0]);
+        TerritoryStructureType type = CommandArgCompleter.requireEnum(TerritoryStructureType.class, args[0]);
         String name = args[1];
         GeneratorStructure generatorStructure = getStructureCache().getStructure(type, name);
         if (generatorStructure == null) {

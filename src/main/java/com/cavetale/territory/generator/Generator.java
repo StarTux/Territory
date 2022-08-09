@@ -5,9 +5,9 @@ import com.cavetale.core.struct.Vec2i;
 import com.cavetale.structure.cache.Structure;
 import com.cavetale.territory.BiomeGroup;
 import com.cavetale.territory.TerritoryPlugin;
+import com.cavetale.territory.TerritoryStructureCategory;
 import com.cavetale.territory.generator.structure.GeneratorStructure;
 import com.cavetale.territory.generator.structure.GeneratorStructureCache;
-import com.cavetale.territory.generator.structure.GeneratorStructureCategory;
 import com.cavetale.territory.struct.Territory;
 import com.winthier.decorator.DecoratorEvent;
 import com.winthier.decorator.DecoratorPostWorldEvent;
@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -81,12 +80,15 @@ public final class Generator implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onDecoratorPostWorld(DecoratorPostWorldEvent event) {
-        if (event.getPass() != 1) return;
-        World world = event.getWorld();
-        GeneratorWorld generatorWorld = worlds.get(world.getName());
-        if (generatorWorld == null) return;
-        if (step(world, generatorWorld)) {
-            event.setCancelled(true);
+        if (event.getPass() == 1) {
+            World world = event.getWorld();
+            GeneratorWorld generatorWorld = worlds.get(world.getName());
+            if (generatorWorld == null) return;
+            if (step(world, generatorWorld)) {
+                event.setCancelled(true);
+            }
+        } else if (event.getPass() == 2) {
+            plugin.getLogger().info("[Generator] [" + event.getWorld().getName() + "] " + surfaceStructureCount);
         }
     }
 
@@ -172,6 +174,8 @@ public final class Generator implements Listener {
         }
     }
 
+    private final Map<String, Integer> surfaceStructureCount = new HashMap<>();
+
     /**
      * Surface structures generate on or above Y=63 and will not
      * tolerate nearby structures on or above 48 within 64 blocks of
@@ -190,19 +194,18 @@ public final class Generator implements Listener {
         }
         // Prepare random coords
         Collections.shuffle(inChunkCoords, generatorWorld.random);
-        final Iterator<Vec2i> inChunkIter = inChunkCoords.iterator();
-        // Find center
-        while (inChunkIter.hasNext()) {
-            final Vec2i worldXZ = baseVec.add(inChunkIter.next());
-            Block anchor = world.getHighestBlockAt(worldXZ.x, worldXZ.z, HeightMap.MOTION_BLOCKING_NO_LEAVES);
-            if (anchor.getY() < 63) {
-                continue;
-            }
-            List<GeneratorStructure> surfaceStructureList = new ArrayList<>(getStructureCache().getStructures(GeneratorStructureCategory.SURFACE));
-            surfaceStructureList.removeIf(s -> !s.canPlace(anchor));
-            if (surfaceStructureList.isEmpty()) continue;
-            Collections.shuffle(surfaceStructureList, generatorWorld.random);
-            for (GeneratorStructure surfaceStructure : surfaceStructureList) {
+        List<GeneratorStructure> surfaceStructureList = new ArrayList<>(getStructureCache().getStructures(TerritoryStructureCategory.SURFACE));
+        Collections.shuffle(surfaceStructureList, generatorWorld.random);
+        surfaceStructureList.sort((a, b) -> Integer.compare(surfaceStructureCount.getOrDefault(a.getName(), 0),
+                                                            surfaceStructureCount.getOrDefault(b.getName(), 0)));
+        for (GeneratorStructure surfaceStructure : surfaceStructureList) {
+            for (Vec2i inChunkVector : inChunkCoords) {
+                final Vec2i worldXZ = baseVec.add(inChunkVector);
+                Block anchor = world.getHighestBlockAt(worldXZ.x, worldXZ.z, HeightMap.MOTION_BLOCKING_NO_LEAVES);
+                if (anchor.getY() < 63) {
+                    continue;
+                }
+                if (!surfaceStructure.canPlace(anchor)) continue;
                 Cuboid boundingBox = surfaceStructure.createTargetBoundingBox(anchor);
                 if (!surfaceStructure.canPlace(world, boundingBox).isSuccessful()) {
                     continue;
@@ -211,8 +214,11 @@ public final class Generator implements Listener {
                 if (structure == null) {
                     continue;
                 }
-                plugin.getLogger().info(chunkVector + ": Placed structure: " + structure);
+                plugin.getLogger().info("[Generator] Placed structure " + structure
+                                        + " chunk:" + chunkVector
+                                        + " excl:" + exclusionZone);
                 structureCache().addStructure(structure);
+                surfaceStructureCount.put(surfaceStructure.getName(), surfaceStructureCount.getOrDefault(surfaceStructure.getName(), 0) + 1);
                 return true;
             }
         }

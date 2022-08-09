@@ -3,6 +3,8 @@ package com.cavetale.territory.generator.structure;
 import com.cavetale.area.struct.Area;
 import com.cavetale.area.struct.AreasFile;
 import com.cavetale.core.struct.Cuboid;
+import com.cavetale.territory.TerritoryStructureCategory;
+import com.cavetale.territory.TerritoryStructureType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -18,16 +20,16 @@ import static com.cavetale.territory.TerritoryPlugin.territoryPlugin;
  * plugin.
  */
 public final class GeneratorStructureCache {
-    private final Map<GeneratorStructureType, List<GeneratorStructure>> cache = new EnumMap<>(GeneratorStructureType.class);
+    private final Map<TerritoryStructureType, List<GeneratorStructure>> cache = new EnumMap<>(TerritoryStructureType.class);
 
     public void load(World world) {
-        for (GeneratorStructureType type : GeneratorStructureType.values()) {
+        for (TerritoryStructureType type : TerritoryStructureType.values()) {
             loadStructures(world, type);
         }
     }
 
     public void prepare() {
-        for (GeneratorStructureType type : GeneratorStructureType.values()) {
+        for (TerritoryStructureType type : TerritoryStructureType.values()) {
             if (cache.get(type) == null || cache.get(type).isEmpty()) {
                 throw new IllegalStateException(type + " cache is emtpy");
             }
@@ -50,7 +52,7 @@ public final class GeneratorStructureCache {
         world.removePluginChunkTickets(territoryPlugin());
     }
 
-    private void loadStructures(World world, GeneratorStructureType type) {
+    private void loadStructures(World world, TerritoryStructureType type) {
         AreasFile areasFile = AreasFile.load(world, type.areasFileName);
         if (areasFile == null) {
             territoryPlugin().getLogger().warning("[GeneratorStructureCache]"
@@ -69,13 +71,13 @@ public final class GeneratorStructureCache {
         }
     }
 
-    public List<GeneratorStructure> getStructures(GeneratorStructureType type) {
+    public List<GeneratorStructure> getStructures(TerritoryStructureType type) {
         return cache.get(type);
     }
 
-    public List<GeneratorStructure> getStructures(GeneratorStructureCategory category) {
+    public List<GeneratorStructure> getStructures(TerritoryStructureCategory category) {
         List<GeneratorStructure> result = new ArrayList<>();
-        for (GeneratorStructureType type : GeneratorStructureType.values()) {
+        for (TerritoryStructureType type : TerritoryStructureType.values()) {
             if (category == type.category) {
                 result.addAll(cache.get(type));
             }
@@ -83,7 +85,7 @@ public final class GeneratorStructureCache {
         return result;
     }
 
-    public GeneratorStructure getStructure(GeneratorStructureType type, String name) {
+    public GeneratorStructure getStructure(TerritoryStructureType type, String name) {
         List<GeneratorStructure> list = getStructures(type);
         for (GeneratorStructure it : list) {
             if (name.equals(it.getName())) return it;
@@ -93,7 +95,7 @@ public final class GeneratorStructureCache {
 
     public List<String> allNames() {
         List<String> result = new ArrayList<>();
-        for (GeneratorStructureType type : GeneratorStructureType.values()) {
+        for (TerritoryStructureType type : TerritoryStructureType.values()) {
             for (GeneratorStructure it : getStructures(type)) {
                 result.add(it.getName());
             }

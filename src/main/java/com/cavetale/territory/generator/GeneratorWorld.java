@@ -463,14 +463,32 @@ public final class GeneratorWorld {
         if (scaledZones.isEmpty()) throw new IllegalStateException("Not starter zones!");
         int distance = 0;
         while (scaledZones.size() < zones.size()) {
+            logger.info("[GeneratorWorld] [" + worldName + "] ScaleZoneLevels"
+                        + " dist:" + distance
+                        + " prog:" + scaledZones.size() + "/" + zones.size());
             distance += 1;
+            boolean progress = false;
             for (GeneratorZone scaled : List.copyOf(scaledZones)) {
                 for (GeneratorZone newZone : scaled.neighbors) {
                     if (scaledZones.contains(newZone)) continue;
                     newZone.level = distance;
                     scaledZones.add(newZone);
+                    progress = true;
                 }
             }
+            if (!progress) {
+                List<GeneratorZone> unscaled = new ArrayList<>(zones);
+                unscaled.removeAll(scaledZones);
+                Map<Vec2i, BiomeGroup> unscaledVecs = new HashMap<>();
+                for (GeneratorZone it : unscaled) unscaledVecs.put(it.computeCenter(), it.biomeGroup);
+                logger.severe("No progress: " + unscaledVecs);
+                break;
+            }
+        }
+        // Set all remaining zones to max level.
+        for (GeneratorZone zone : zones) {
+            if (scaledZones.contains(zone)) continue;
+            zone.level = distance + 1;
         }
     }
 

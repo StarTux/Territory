@@ -4,7 +4,7 @@ import com.cavetale.structure.cache.Structure;
 import com.cavetale.structure.event.StructureLoadEvent;
 import com.cavetale.structure.event.StructureUnloadEvent;
 import com.cavetale.territory.TerritoryPlugin;
-import com.cavetale.territory.generator.structure.GeneratorStructureType;
+import com.cavetale.territory.TerritoryStructureType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -55,7 +55,7 @@ public final class Manager implements Listener {
     @EventHandler
     private void onStructureLoad(StructureLoadEvent event) {
         Structure structure = event.getStructure();
-        GeneratorStructureType type = GeneratorStructureType.of(structure.getKey());
+        TerritoryStructureType type = TerritoryStructureType.of(structure.getKey());
         if (type == null) return;
         ManagerWorld managerWorld = worlds.get(structure.getWorld());
         if (managerWorld == null) return;
@@ -65,7 +65,7 @@ public final class Manager implements Listener {
     @EventHandler
     private void onStructureUnload(StructureUnloadEvent event) {
         Structure structure = event.getStructure();
-        GeneratorStructureType type = GeneratorStructureType.of(structure.getKey());
+        TerritoryStructureType type = TerritoryStructureType.of(structure.getKey());
         if (type == null) return;
         ManagerWorld managerWorld = worlds.get(structure.getWorld());
         if (managerWorld == null) return;

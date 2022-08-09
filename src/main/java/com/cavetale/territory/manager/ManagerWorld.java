@@ -1,10 +1,11 @@
 package com.cavetale.territory.manager;
 
 import com.cavetale.structure.cache.Structure;
-import com.cavetale.territory.generator.structure.GeneratorStructureType;
+import com.cavetale.territory.TerritoryStructureType;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
+import static com.cavetale.structure.StructurePlugin.structureCache;
 
 @Getter
 public final class ManagerWorld {
@@ -19,15 +20,22 @@ public final class ManagerWorld {
 
     protected void enable() {
         territoryWorld.load();
+        for (Structure structure : structureCache().allLoaded(worldName)) {
+            TerritoryStructureType type = TerritoryStructureType.of(structure.getKey());
+            if (type == null) continue;
+            onStructureLoad(type, structure);
+        }
     }
 
-    protected void onStructureLoad(GeneratorStructureType type, Structure structure) {
-        ManagerStructure managerStructure = new ManagerStructure(type, structure);
+    protected void onStructureLoad(TerritoryStructureType type, Structure structure) {
+        ManagerStructure managerStructure = switch (type) {
+        case MOB_CAMP -> new ManagerSurfaceStructure(type, structure);
+        };
         structureMap.put(structure.getId(), managerStructure);
         managerStructure.enable();
     }
 
-    protected void onStructureUnload(GeneratorStructureType type, Structure structure) {
+    protected void onStructureUnload(TerritoryStructureType type, Structure structure) {
         ManagerStructure managerStructure = structureMap.remove(structure.getId());
         if (managerStructure != null) managerStructure.disable();
     }

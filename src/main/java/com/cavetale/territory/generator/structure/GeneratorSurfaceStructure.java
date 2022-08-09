@@ -6,6 +6,7 @@ import com.cavetale.core.struct.Vec2i;
 import com.cavetale.core.struct.Vec3i;
 import com.cavetale.core.util.Json;
 import com.cavetale.structure.cache.Structure;
+import com.cavetale.territory.TerritoryStructureType;
 import com.cavetale.territory.struct.SurfaceStructureTag;
 import com.destroystokyo.paper.MaterialSetTag;
 import com.destroystokyo.paper.MaterialTags;
@@ -35,8 +36,8 @@ import static com.cavetale.territory.TerritoryPlugin.territoryPlugin;
  * Members: origin
  */
 @Getter
-public final class SurfaceStructure implements GeneratorStructure {
-    private final GeneratorStructureType type;
+public final class GeneratorSurfaceStructure implements GeneratorStructure {
+    private final TerritoryStructureType type;
     private final World originWorld;
     private final String name;
     private final Vec3i anchor;
@@ -47,8 +48,8 @@ public final class SurfaceStructure implements GeneratorStructure {
     private final Set<Vec3i> flyingMobVectors = new HashSet<>();
     private final Vec3i bossChestVector;
 
-    protected SurfaceStructure(final GeneratorStructureType type,
-                               final World world, final String name, final List<Area> areas) {
+    public GeneratorSurfaceStructure(final TerritoryStructureType type,
+                                     final World world, final String name, final List<Area> areas) {
         this.type = type;
         this.originWorld = world;
         this.name = name;
@@ -81,7 +82,7 @@ public final class SurfaceStructure implements GeneratorStructure {
                 theBossChestVector = area.getMin();
                 break;
             default:
-                territoryPlugin().getLogger().warning("[SurfaceStructure] [" + name + "] Unknown area name: " + area.name);
+                territoryPlugin().getLogger().warning("[GeneratorSurfaceStructure] [" + name + "] Unknown area name: " + area.name);
             }
         }
         if (theAnchor != null) {
@@ -99,7 +100,7 @@ public final class SurfaceStructure implements GeneratorStructure {
         this.bossChestVector = theBossChestVector != null
             ? theBossChestVector
             : anchor.add(0, 1, 0);
-        territoryPlugin().getLogger().info("[SurfaceStructure] " + name
+        territoryPlugin().getLogger().info("[GeneratorSurfaceStructure] " + name
                                            + " anchor:" + anchor
                                            + " ground:" + groundType
                                            + " mobs:" + mobVectors.size() + "," + flyingMobVectors.size());
@@ -229,11 +230,10 @@ public final class SurfaceStructure implements GeneratorStructure {
                     if (!pillarStarted) {
                         pillarStarted = true;
                         // Clear the pillar
-                        for (int targetY = targetPos.y; targetY < targetWorld.getHighestBlockYAt(x, z, HeightMap.WORLD_SURFACE); targetY += 1) {
-                            Block airBlock = targetWorld.getBlockAt(targetPos.x, targetY, targetPos.z);
-                            if (!airBlock.isEmpty() && isSurfaceAirReplaceable(airBlock)) {
-                                airBlock.setType(Material.AIR, false);
-                            }
+                        final int ceilY = targetWorld.getHighestBlockYAt(targetPos.x, targetPos.z, HeightMap.WORLD_SURFACE);
+                        for (int targetY = targetPos.y; targetY < ceilY; targetY += 1) {
+                            Block aboveBlock = targetWorld.getBlockAt(targetPos.x, targetY, targetPos.z);
+                            if (!aboveBlock.isEmpty()) aboveBlock.setType(Material.AIR, false);
                         }
                     }
                     targetPos.toBlock(targetWorld).setBlockData(blockData, false);

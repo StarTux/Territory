@@ -1,18 +1,14 @@
 package com.cavetale.territory.manager;
 
 import com.cavetale.structure.cache.Structure;
-import com.cavetale.territory.generator.structure.GeneratorStructureType;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import com.cavetale.territory.TerritoryStructureType;
 
-@Getter @RequiredArgsConstructor
-public final class ManagerStructure {
-    private final GeneratorStructureType type;
-    private final Structure structure;
+public interface ManagerStructure {
+    TerritoryStructureType getType();
 
-    protected void enable() {
-    }
+    Structure getStructure();
 
-    protected void disable() {
-    }
+    void enable();
+
+    void disable();
 }
