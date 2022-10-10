@@ -2,7 +2,6 @@ package com.cavetale.territory.generator;
 
 import com.cavetale.core.struct.Vec2i;
 import com.cavetale.core.util.Json;
-import com.cavetale.structure.cache.BiomeSection;
 import com.cavetale.territory.BiomeGroup;
 import com.cavetale.territory.manager.TerritoryWorld;
 import com.cavetale.territory.struct.Territory;
@@ -59,7 +58,7 @@ public final class GeneratorWorld {
     int width;
     int height;
     // Find Zones
-    Map<Vec2i, BiomeGroup> chunks;
+    Map<Vec2i, Biome> biomes;
     Set<Vec2i> findZonesPool;
     List<GeneratorZone> zones;
     Map<Vec2i, GeneratorZone> zoneMap;
@@ -76,41 +75,16 @@ public final class GeneratorWorld {
         return Bukkit.getWorld(worldName);
     }
 
-    private static BiomeGroup getMainBiomeGroup(List<BiomeSection> sections) {
-        Map<BiomeGroup, Integer> biomeGroups = new EnumMap<>(BiomeGroup.class);
-        BiomeGroup mainBiomeGroup = BiomeGroup.VOID;
-        int max = 0;
-        for (BiomeSection section : sections) {
-            for (Biome biome : section.getBiomes()) {
-                BiomeGroup biomeGroup = BiomeGroup.of(biome);
-                if (biomeGroup == BiomeGroup.RIVER) return biomeGroup;
-                if (!biomeGroup.category.handled) continue;
-                int count = biomeGroups.getOrDefault(biomeGroup, 0) + 1;
-                biomeGroups.put(biomeGroup, count);
-                if (count > max) {
-                    max = count;
-                    mainBiomeGroup = biomeGroup;
-                }
-            }
-        }
-        return mainBiomeGroup;
-    }
-
     public void loadBiomes() {
-        chunks = new HashMap<>();
-        Map<Vec2i, List<BiomeSection>> sectionsMap = new HashMap<>();
-        for (BiomeSection section : structureCache().biomeSections(getWorld())) {
-            sectionsMap.computeIfAbsent(section.getChunkVector(), v -> new ArrayList<>())
-                .add(section);
-        }
-        for (Map.Entry<Vec2i, List<BiomeSection>> entry : sectionsMap.entrySet()) {
+        biomes = structureCache().allBiomes(getWorld());
+        for (Map.Entry<Vec2i, Biome> entry : biomes.entrySet()) {
             Vec2i vec = entry.getKey();
-            BiomeGroup mainBiomeGroup = getMainBiomeGroup(entry.getValue());
-            chunks.put(vec, mainBiomeGroup);
+            Biome biome = entry.getValue();
+            BiomeGroup biomeGroup = BiomeGroup.of(biome);
         }
         // Determine world dimensions.  Should we use the WorldBorder
         // instead?
-        for (Vec2i vec : chunks.keySet()) {
+        for (Vec2i vec : biomes.keySet()) {
             if (vec.x < ax) ax = vec.x;
             if (vec.x > bx) bx = vec.x;
             if (vec.z < az) az = vec.z;
@@ -131,9 +105,9 @@ public final class GeneratorWorld {
     }
 
     public void drawBiomes()  {
-        for (Map.Entry<Vec2i, BiomeGroup> entry : chunks.entrySet()) {
+        for (Map.Entry<Vec2i, Biome> entry : biomes.entrySet()) {
             Vec2i vec = entry.getKey();
-            BiomeGroup biomeGroup = entry.getValue();
+            BiomeGroup biomeGroup = BiomeGroup.of(entry.getValue());
             int x = vec.x - ax;
             int y = vec.z - az;
             img.setRGB(x, y, biomeGroup.color.getRGB());
@@ -254,7 +228,7 @@ public final class GeneratorWorld {
 
     public void prepareFindZones() {
         zones = new ArrayList<>();
-        findZonesPool = new HashSet<>(chunks.keySet());
+        findZonesPool = new HashSet<>(biomes.keySet());
         zoneMap = new HashMap<>();
     }
 
@@ -265,14 +239,14 @@ public final class GeneratorWorld {
         }
         Vec2i pivotVec = findZonesPool.iterator().next();
         findZonesPool.remove(pivotVec);
-        BiomeGroup pivotBiomeGroup = chunks.get(pivotVec);
+        BiomeGroup pivotBiomeGroup = BiomeGroup.of(biomes.get(pivotVec));
         List<Vec2i> zoneChunks = new ArrayList<>();
         zoneChunks.add(pivotVec);
         Set<Vec2i> done = new HashSet<>();
         for (int i = 0; i < zoneChunks.size(); i += 1) {
             Vec2i vec = zoneChunks.get(i);
             for (Vec2i nbor : Vectors.neighbors(vec)) {
-                BiomeGroup nborBiomeGroup = chunks.get(nbor);
+                BiomeGroup nborBiomeGroup = BiomeGroup.of(biomes.get(nbor));
                 if (nborBiomeGroup != null && nborBiomeGroup == pivotBiomeGroup && !done.contains(nbor)) {
                     findZonesPool.remove(nbor);
                     done.add(nbor);

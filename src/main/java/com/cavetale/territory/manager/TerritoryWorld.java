@@ -37,14 +37,16 @@ public final class TerritoryWorld {
         World world = Bukkit.getWorld(worldName);
         if (world == null) return;
         File folder = new File(world.getWorldFolder(), TERRITORY_FOLDER);
-        for (File file : folder.listFiles()) {
-            String name = file.getName();
-            if (!name.startsWith("territory.") || !name.endsWith(".json")) continue;
-            Territory territory = Json.load(file, Territory.class);
-            if (territory == null) {
-                throw new IllegalStateException("File yields null: " + file);
+        if (folder.isDirectory()) {
+            for (File file : folder.listFiles()) {
+                String name = file.getName();
+                if (!name.startsWith("territory.") || !name.endsWith(".json")) continue;
+                Territory territory = Json.load(file, Territory.class);
+                if (territory == null) {
+                    throw new IllegalStateException("File yields null: " + file);
+                }
+                territories.add(territory);
             }
-            territories.add(territory);
         }
         territories.sort(Comparator.comparingInt(Territory::getId));
         for (int tindex = 0; tindex < territories.size(); tindex += 1) {

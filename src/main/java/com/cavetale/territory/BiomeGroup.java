@@ -2,6 +2,7 @@ package com.cavetale.territory;
 
 import java.awt.Color;
 import java.io.PrintStream;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -68,6 +69,7 @@ public enum BiomeGroup {
         public final boolean essential;
     }
 
+    public static final EnumMap<Biome, BiomeGroup> BIOMES = new EnumMap<>(Biome.class);
     public static final Map<String, BiomeGroup> NAMES = new HashMap<>();
     public static final Map<String, BiomeGroup> KEYS = new HashMap<>();
     public final Category category;
@@ -94,7 +96,8 @@ public enum BiomeGroup {
     }
 
     public static BiomeGroup of(Biome biome) {
-        return of(biome.name());
+        if (biome == null) return VOID;
+        return BIOMES.computeIfAbsent(biome, BiomeGroup::forBiome);
     }
 
     public static BiomeGroup of(String name) {
@@ -103,6 +106,10 @@ public enum BiomeGroup {
 
     public static BiomeGroup ofKey(String name) {
         return KEYS.get(name);
+    }
+
+    private static BiomeGroup forBiome(Biome biome) {
+        return of(biome.name());
     }
 
     private static BiomeGroup forName(String biome) {
